@@ -1,0 +1,52 @@
+Short description:
+Notification an Kunden nach Order-Annahme // Notification to customer after order acceptance
+--------------------------------------------------
+Description:
+Als Kunde möchte ich automatisch eine Notification erhalten, sobald die Order durch einen Ordermanager angenommen wurde, damit ich informiert bin, dass die Order in Bearbeitung ist und ich weiß, welcher Ordermanager zuständig ist.
+As a customer, I want to automatically receive a notification as soon as the order has been accepted by an order manager, so that I am informed that the order is being processed and I know which order manager is responsible.
+-----------------------------------------------
+User Story:
+Als Kunde möchte ich automatisch eine Notification erhalten, sobald die Order durch einen Ordermanager angenommen wurde, damit ich informiert bin, dass die Order in Bearbeitung ist und ich weiß, welcher Ordermanager zuständig ist.
+Inhalt und Aufbau der Notification siehe Vorlage im Anhang.
+Die Notification soll an die Adressaten aus der Vorlage im Anhang versendet werden und zusätzlich im Portal bei der Order einsehbar sein.
+Die Notification wird mit dem Statuswechsel in den Order Status "Eingangsprüfung" versendet.
+
+As a customer, I want to automatically receive a notification as soon as the order has been accepted by an order manager, so that I am informed that the order is being processed and I know which order manager is responsible.
+Content and structure of the notification see template in the attachment.
+The notification should be sent to the customer's contact person and additionally be viewable in the portal at the order.
+------------------------------------------------
+Technical Description:
+Create notification - satisfy the layout as attached. Verify the existing layouts.
+Make sure the notification is seen in the portal via the activity stream.
+------------------------------------------------
+Acceptance criteria:
+Nach Statuswechsel in den Order Status "Eingangsprüfung" wird automatisch eine Notification an den Kunden gesendet 
+Die Notification enthält die Information wie in der Vorlage dargestellt.
+Für den Kunde ist im Portal zu seiner Order der Status und der Ordermanager ersichtlicht
+
+After status change "Order accepted" a notification is automatically sent to the customer
+The notification contains the information as shown in the template.
+For the customer the status and the order manager are visible in the portal for his order
+---------------------------------------------
+Template msg:
+An: <kaufmännischer Ansprechpartner>; <fachlicher Ansprechpartner>; <technischer Ansprechpartnere>
+CC: 
+Betreff: Auftragsbestätigung Order: <Order-ID> Order-Bezeichnung: <Titel der Anfrage> (Kundenreferenz: [<Kundenreferenznummer>])
+
+Sehr geehrte Damen und Herren,
+die von Ihnen beauftragte Order <Order-Nr.> „<Titel der Anfrage>“ (Kundenreferenz: <Kundenreferenznummer>) wurde bei FI-TS angenommen.
+Über den weiteren Bearbeitungsstand der Bereitstellung werden Sie regelmäßig informiert.
+Bei Rückfragen können Sie sich an den verantwortlichen Ordermanager <Name Ordermanager> (E-Mail-Adresse Ordermanager) wenden.
+Freundliche Grüße
+FI-TS Ordermanagement
+
+www.f-i-ts.de
+FI-TS Sicherheitshinweis
+
+Finanz Informatik Technologie Service GmbH & Co. KG
+Handelsregister HRA 69637, Sitz: Haar, Amtsgericht München
+Finanz Informatik Technologie Service Beteiligungsgesellschaft mbH
+Handelsregister HRB 105291, Sitz: Haar, Amtsgericht München
+Geschäftsführer: Christoph Röger (Vorsitzender), Andreas Kopp, Dr. Christian Thiel
+Vorsitzender des Aufsichtsrates: Detlev Klage
+
