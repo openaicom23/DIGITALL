@@ -1,0 +1,16 @@
+Notification Vorlage Kontierungserinnerung zum manuellen Versand
+
+Als Ordermanager möchte ich die Möglichkeit haben während der Orderlaufzeit eine Notification zur Kontierungserinnerung an die Auftragsbearbeiter zu versenden.
+
+Als Ordermanager möchte ich die Möglichkeit haben während der Orderlaufzeit eine Notification zur Kontierungserinnerung an die Auftragsbearbeiter zu versenden.
+
+Hierzu soll die im Anhang dargestellte Vorlage durch den Ordermanager innerhalb der Order auswählbar und der Adressatenkreis und der Mailinhalt editierbar sein, bevor der Ordermanager diese manuell auslöst.
+
+Die versendete Notification soll dann unter den Aktivitäten der Order mit dokumentiert und einsehbar sein.
+
+This is the "Compose email" functionality and the attached file should be implemented as template for this.
+
+Die Notification-Vorlage kann innerhalb der Order durch den Ordermanager ausgewählt werden
+Adressaten und Mailinhalt können editiert werden
+Ordermanager kann nach dem ändern die Notification versenden
+Die Notification ist in den Aktivitäten der Order dokumentiert
