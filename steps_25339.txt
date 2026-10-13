@@ -1,0 +1,147 @@
+Manual Kontierungserinnerung from the order, using ServiceNow Compose Email.
+
+Story: `25339.txt`. The requirements are in German and English. The mail itself is the German template at the bottom of that file. One template is enough.
+
+This is not an automatic notification. The order manager opens Compose Email on the order, picks this template, edits recipients and text, then sends. The sent mail is the activity entry.
+
+`Betrief` in the template is a typo for Betreff. It is the subject label, not part of the subject line.
+
+## 1. Map the template to order fields
+
+Confirm these fields on the order table before creating the template.
+
+| Template placeholder | Meaning | Use in the template |
+|---|---|---|
+| Abstimmpartner intern | To. The story calls this person the Auftragsbearbeiter | email of that user field |
+| Order-ID | Order number | `number`, or the field that shows the Order-ID |
+| Titel der Anfrage | Order title | `short_description` |
+| Geplantes Enddatum | Planned end date | the planned-end date field |
+| Kontierungsobjekt | Account-assignment object | that field's display value |
+| Ordermanager | Order manager to contact | name of the order-manager user field (`assigned_to` or `u_assigned_to`) |
+
+Recipient type decides the To value:
+
+- User reference (`sys_user`): `${abstimmpartner.email}`
+- Several user references: comma-separated `${field.email}`
+- Group with its own email: that group address
+- List of users, or a group with no email: leave To empty. The email client does not reliably expand those to addresses.
+
+Replace `abstimmpartner` with the real field name. This is not the three customer contacts from the completion mail.
+
+The planned end date must show as a calendar date. If `${planned_end}` renders as a system timestamp, use the display value instead.
+
+## 2. Confirm Compose Email on the order
+
+Use the UI the order manager actually uses.
+
+**Classic form.** The order form needs an Email action that opens the email client for this record (`sysparm_table` and `sysparm_sys_id` of the current order). Tables that extend `task` usually inherit it.
+
+**Agent Workspace.** The record page needs the Compose Email action for this table. Templates come from the same client-template table.
+
+Restrict the action to the order manager role. Condition shape:
+
+```javascript
+gs.hasRole('order_manager_role')
+```
+
+Replace `order_manager_role` with the real role. Other roles keep their existing actions.
+
+The action stays available for the whole order runtime. Do not bind it to a status change. Hide it only on terminal states (cancelled / closed) if those orders are no longer in Laufzeit.
+
+## 3. Create the email client template
+
+Go to **System Policy > Email > Client Templates** (`sys_email_client_template`). Create one record.
+
+- **Name:** `Kontierungserinnerung`
+- **Table:** the order table
+- **User:** empty, so it is a shared template, not a personal one
+- **To:** `${abstimmpartner.email}`
+- **CC / BCC:** empty. The template has no CC or BCC.
+- **Condition:** empty, or limited to non-terminal order states
+
+**Subject:**
+
+```text
+Erinnerung zur Order ${number} ${short_description}
+```
+
+**Body:**
+
+```text
+Guten Tag,
+
+der oben genannte Auftrag endet zum ${planned_end}.
+
+Bitte kontieren Sie Ihre angefallenen Change-Aufwände auf das folgende Kontierungselement: ${kontierungsobjekt}.
+
+Bitte geben Sie uns eine kurze Rückmeldung, falls zu diesem Vorhaben keine Aufwände angefallen sein sollten bzw. falls es zu terminlichen Verschiebungen kommt.
+
+Vielen Dank!
+
+Bei Rückfragen wenden Sie sich bitte an ${assigned_to.name}.
+
+Freundliche Grüße
+
+FI-TS Ordermanagement
+
+www.f-i-ts.de
+FI-TS Sicherheitshinweis
+
+Finanz Informatik Technologie Service GmbH & Co. KG
+Handelsregister HRA 69637, Sitz: Haar, Amtsgericht München
+Finanz Informatik Technologie Service Beteiligungsgesellschaft mbH
+Handelsregister HRB 105291, Sitz: Haar, Amtsgericht München
+Geschäftsführer: Christoph Röger (Vorsitzender), Andreas Kopp, Dr. Christian Thiel
+Vorsitzender des Aufsichtsrates: Detlev Klage
+```
+
+Replace `${number}`, `${short_description}`, `${planned_end}`, `${kontierungsobjekt}`, `${assigned_to}`, and `${abstimmpartner}` with the fields from step 1.
+
+If the body field is HTML, keep the same sentences and put a line break where the template has one. If FI-TS already has a standard email layout, put the text through the FI-TS Ordermanagement sign-off in the template and leave the register block to that layout.
+
+The template only prefills the composer. It must not send by itself.
+
+## 4. Recipients and text stay editable
+
+Send only through the email client. Do not add a business rule, event, or **System Notification > Email > Notifications** record for this story. Those send immediately and skip the edit step.
+
+On send, the client must allow the order manager to:
+
+- change To, CC, and BCC
+- change subject and body
+- send the edited version
+
+Do not make the body read-only.
+
+## 5. Show the sent mail in the order activities
+
+The composer has to be opened from the order, so `sys_email.target_table` and `sys_email.instance` point at that order. That is what places the mail in the activity stream.
+
+On the order form, the activity formatter must include **Email** (sent email). In Workspace, the activity configuration for this table must include email as well.
+
+Check with one send:
+
+- Activity shows one entry for that mail, with the text that was actually sent (after edits).
+- **System Mailboxes > Outbound > Outbox** shows the same mail once.
+
+If this order screen does not show emails in Activity, turn that filter on. Do not also write the body into **Additional comments**. A comment would be a second entry for the same send.
+
+## 6. Test
+
+1. As an order manager, open an order that is still in Laufzeit. Abstimmpartner intern, planned end date, Kontierungsobjekt, and order manager are filled in.
+2. Open Compose Email. Select `Kontierungserinnerung`.
+3. To is the Abstimmpartner intern address. Subject is `Erinnerung zur Order` plus order id and title. Body matches the template, including planned end date, Kontierungsobjekt, order manager name, and the FI-TS footer.
+4. Change one recipient and one sentence. Send.
+5. Outbox has one mail, to the edited recipients, with the edited text.
+6. The order Activity shows that same mail.
+7. Save the order, and move the status, without using Compose Email again. No second mail.
+8. As a user without the order manager role, the Compose Email action is not available.
+
+## 7. Close the story when all of these are true
+
+- Inside the order, the order manager can select `Kontierungserinnerung`.
+- To defaults to Abstimmpartner intern and can be changed.
+- Subject and body match the template in `25339.txt`: order id, title, planned end date, Kontierungsobjekt, order manager, and the FI-TS sign-off.
+- After editing, the order manager can send it.
+- The sent notification is visible in the order activities.
+- Nothing sends this mail on insert, update, or status change.

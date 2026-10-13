@@ -1,0 +1,152 @@
+Как се изпълнява история 25339
+
+Накрая мениджърът на поръчката отваря поръчка, натиска Email, избира шаблона Kontierungserinnerung, поправя получател и текст, ако иска, и изпраща. Изпратеното писмо се вижда в Activities на същата поръчка.
+
+Писмото не тръгва само при смяна на статус. Затова не създаваш запис в System Notification > Email > Notifications.
+
+Преди шаблона ти трябват истинските имена на полетата. В стъпките по-долу те са записани като ПРИМЕР. Смени ги с имената от стъпка 1.
+
+## Стъпка 1. Запиши имената на полетата
+
+1. Влез в ServiceNow като администратор.
+2. Отвори една поръчка, която още се изпълнява и има попълнени контакти.
+3. Погледни адреса в браузъра. Името на таблицата е думата преди `.do`. Пример: ако адресът съдържа `u_order.do`, таблицата е `u_order`. Запиши я.
+4. За всяко поле от списъка по-долу: щракни с десен бутон върху етикета на полето и избери Configure Dictionary. Горе копирай Column name.
+
+| Какво търсиш на формата | За какво е в писмото |
+|---|---|
+| Abstimmpartner intern | Получател (To) |
+| Номер на поръчката (Order-ID) | Тема |
+| Заглавие (Titel der Anfrage) | Тема |
+| Geplantes Enddatum | Дата в текста |
+| Kontierungsobjekt | Обект за контиране в текста |
+| Ordermanager | Име за въпроси в текста |
+
+Пример, ако колоните се казват така:
+
+- таблица: `u_order`
+- Abstimmpartner intern: `u_abstimmpartner`
+- номер: `number`
+- заглавие: `short_description`
+- крайна дата: `u_planned_end`
+- Kontierungsobjekt: `u_kontierungsobjekt`
+- Ordermanager: `u_assigned_to`
+
+Ако десният бутон няма Configure Dictionary, нямаш права за тази стъпка. Поискай администратор или роля с достъп до речника.
+
+## Стъпка 2. Провери дали поръчката вече има бутон Email
+
+1. Отвори същата поръчка.
+2. Ако работиш в класическата форма, потърси бутон Email горе на формата.
+3. Ако работиш в Workspace, потърси Email или Compose на страницата на поръчката.
+4. Натисни го. Трябва да се отвори прозорец, в който има получател, тема, текст и бутон Send.
+
+Ако прозорецът се отваря, не пипай бутона. Минаваш на стъпка 3.
+
+Ако бутонът липсва и таблицата наследява `task`, отвори UI Actions за таблицата `task`, намери действието Email и провери дали е Form button и Active. То трябва да отваря `email_client.do` за текущия запис (`sysparm_table` и `sysparm_sys_id`). Не създавай второ такова действие, ако това вече съществува и е само скрито от изгледа.
+
+## Стъпка 3. Създай шаблона
+
+1. Вляво в търсачката на приложението напиши:
+
+```text
+sys_email_client_template.list
+```
+
+2. Натисни Enter.
+3. Натисни New.
+4. Попълни:
+
+- Name: `Kontierungserinnerung`
+- Table: таблицата от стъпка 1. Не слагай `task`, ако поръчката е отделна таблица. Иначе шаблонът няма да излезе в списъка на поръчката.
+- User: празно
+- To: `${u_abstimmpartner.email}`
+- CC: празно
+- BCC: празно
+- Subject: редът от стъпка 4
+- Body: текстът от стъпка 4
+
+Смени `u_abstimmpartner` с Column name на Abstimmpartner intern.
+
+Ако това поле е един потребител, To е `${име_на_полето.email}`.
+Ако получателите са няколко потребителски полета, раздели ги със запетая: `${поле1.email}, ${поле2.email}`.
+Ако е група със собствен имейл, сложи имейла на групата.
+Ако е списък от потребители без имейл на групата, остави To празно. Потребителят ще го попълни ръчно преди изпращане.
+
+5. Condition остави празно.
+6. Натисни Submit.
+
+## Стъпка 4. Тема и текст
+
+В Subject постави този ред. Смени имената на полетата с твоите от стъпка 1.
+
+```text
+Erinnerung zur Order ${number} ${short_description}
+```
+
+В Body постави този текст. Смени само трите имена в `${...}`. Немските изречения остават същите.
+
+```text
+Guten Tag,
+
+der oben genannte Auftrag endet zum ${u_planned_end}.
+
+Bitte kontieren Sie Ihre angefallenen Change-Aufwände auf das folgende Kontierungselement: ${u_kontierungsobjekt}.
+
+Bitte geben Sie uns eine kurze Rückmeldung, falls zu diesem Vorhaben keine Aufwände angefallen sein sollten bzw. falls es zu terminlichen Verschiebungen kommt.
+
+Vielen Dank!
+
+Bei Rückfragen wenden Sie sich bitte an ${u_assigned_to.name}.
+
+Freundliche Grüße
+
+FI-TS Ordermanagement
+
+www.f-i-ts.de
+FI-TS Sicherheitshinweis
+
+Finanz Informatik Technologie Service GmbH & Co. KG
+Handelsregister HRA 69637, Sitz: Haar, Amtsgericht München
+Finanz Informatik Technologie Service Beteiligungsgesellschaft mbH
+Handelsregister HRB 105291, Sitz: Haar, Amtsgericht München
+Geschäftsführer: Christoph Röger (Vorsitzender), Andreas Kopp, Dr. Christian Thiel
+Vorsitzender des Aufsichtsrates: Detlev Klage
+```
+
+Ако след запис редовете се слепят, полето е HTML. Отвори HTML и сложи `<br>` на мястото на всеки нов ред, или натискай Enter във визуалния редактор, докато абзаците съвпаднат с текста по-горе.
+
+Ако инстанцията вече слага сама долния блок с адреса и управителите, в шаблона стига текстът до реда `FI-TS Ordermanagement`. Регистърният блок тогава не се копира втори път.
+
+## Стъпка 5. Пробвай изпращането
+
+1. Отвори поръчка в изпълнение. Попълнени са Abstimmpartner intern, крайната дата, Kontierungsobjekt и Ordermanager.
+2. Натисни Email.
+3. В падащия списък на шаблоните избери `Kontierungserinnerung`. Ако го няма, Table на шаблона не е таблицата на тази поръчка. Поправи Table и отвори Email отново.
+4. Провери какво се е попълнило:
+   - To е имейлът на Abstimmpartner intern
+   - темата започва с `Erinnerung zur Order`, после номер и заглавие
+   - в текста има крайна дата, Kontierungsobjekt и името на Ordermanager
+5. Ако видиш празно място или буквално `${някакво_поле}`, името на полето е грешно. Върни се в шаблона и го смени с Column name от стъпка 1.
+6. Смени един получател и едно изречение. Така проверяваш, че текстът не е заключен.
+7. Натисни Send.
+
+## Стъпка 6. Провери, че писмото е в дейностите
+
+1. Опресни поръчката.
+2. В Activities трябва да има едно писмо с текста, който си изпратил след редакцията.
+3. В търсачката отвори `sys_email.list`. Филтрирай по тази поръчка. Има едно изходящо писмо към променения получател.
+4. Ако в Activities няма писмо, натисни филтъра на Activities и включи Email. Не добавяй същия текст в Additional comments. Това прави втори запис.
+
+## Стъпка 7. Провери, че писмото не тръгва само
+
+1. Запиши поръчката, без да натискаш Email. Ново писмо няма.
+2. Смени статуса и запиши. Ново писмо от този шаблон няма.
+3. Влез с потребител, който е мениджър на поръчки, и повтори стъпка 5 до избора на шаблона. Той трябва да вижда Email и `Kontierungserinnerung`.
+
+## Историята е готова, когато
+
+- от поръчката се избира `Kontierungserinnerung`
+- получателят и текстът се променят преди Send
+- след Send писмото се вижда в Activities
+- запис или смяна на статус не изпращат това писмо
