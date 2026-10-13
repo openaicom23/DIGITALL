@@ -12,21 +12,65 @@ Confirm these fields on the order table before creating the template.
 
 | Template placeholder | Meaning | Use in the template |
 |---|---|---|
-| Abstimmpartner intern | To. The story calls this person the Auftragsbearbeiter | email of that user field |
+| Abstimmpartner intern | To. The story calls this person the Auftragsbearbeiter | `u_internal_coordination_partner` is a List of `sys_user`. In To, put the field name only: `u_internal_coordination_partner` |
 | Order-ID | Order number | `number`, or the field that shows the Order-ID |
 | Titel der Anfrage | Order title | `short_description` |
 | Geplantes Enddatum | Planned end date | the planned-end date field |
 | Kontierungsobjekt | Account-assignment object | that field's display value |
 | Ordermanager | Order manager to contact | name of the order-manager user field (`assigned_to` or `u_assigned_to`) |
 
-Recipient type decides the To value:
+`u_internal_coordination_partner` is a List of `sys_user`, so one order can have many partners. `${u_internal_coordination_partner.email}` stays empty on a list. Do not add a helper field.
 
-- User reference (`sys_user`): `${abstimmpartner.email}`
-- Several user references: comma-separated `${field.email}`
-- Group with its own email: that group address
-- List of users, or a group with no email: leave To empty. The email client does not reliably expand those to addresses.
+In the template To field, enter only the column name:
 
-Replace `abstimmpartner` with the real field name. This is not the three customer contacts from the completion mail.
+```text
+u_internal_coordination_partner
+```
+
+No `${}`, no `.email`, no commas. The email client expands a list of users when the template is selected.
+
+If To is still empty, call one script include from To. The include returns a comma-separated address list at selection time. `current` is the order.
+
+```javascript
+var AbstimmpartnerEmails = Class.create();
+AbstimmpartnerEmails.prototype = {
+    initialize: function() {},
+
+    getEmails: function() {
+        var emails = [];
+        var seen = {};
+        var ids = '';
+        if (typeof current !== 'undefined' && current)
+            ids = current.getValue('u_internal_coordination_partner') || '';
+
+        if (!ids)
+            return '';
+
+        var user = new GlideRecord('sys_user');
+        user.addQuery('sys_id', 'IN', ids);
+        user.query();
+        while (user.next()) {
+            var addr = (user.getValue('email') || '').trim();
+            var key = addr.toLowerCase();
+            if (addr && !seen[key]) {
+                seen[key] = true;
+                emails.push(addr);
+            }
+        }
+        return emails.join(',');
+    },
+
+    type: 'AbstimmpartnerEmails'
+};
+```
+
+To contains only:
+
+```text
+javascript:new AbstimmpartnerEmails().getEmails();
+```
+
+A comma inside that To line breaks parsing, so the script stays in the include. Users with an empty Email on `sys_user` are skipped. This is not the three customer contacts from the completion mail.
 
 The planned end date must show as a calendar date. If `${planned_end}` renders as a system timestamp, use the display value instead.
 
@@ -55,7 +99,7 @@ Go to **System Policy > Email > Client Templates** (`sys_email_client_template`)
 - **Name:** `Kontierungserinnerung`
 - **Table:** the order table
 - **User:** empty, so it is a shared template, not a personal one
-- **To:** `${abstimmpartner.email}`
+- **To:** `u_internal_coordination_partner`
 - **CC / BCC:** empty. The template has no CC or BCC.
 - **Condition:** empty, or limited to non-terminal order states
 
@@ -95,7 +139,7 @@ Geschäftsführer: Christoph Röger (Vorsitzender), Andreas Kopp, Dr. Christian 
 Vorsitzender des Aufsichtsrates: Detlev Klage
 ```
 
-Replace `${number}`, `${short_description}`, `${planned_end}`, `${kontierungsobjekt}`, `${assigned_to}`, and `${abstimmpartner}` with the fields from step 1.
+Replace `${number}`, `${short_description}`, `${planned_end}`, `${kontierungsobjekt}`, and `${assigned_to}` with the fields from step 1. To stays `u_internal_coordination_partner`, or the `javascript:` script include call if the bare field name does not expand.
 
 If the body field is HTML, keep the same sentences and put a line break where the template has one. If FI-TS already has a standard email layout, put the text through the FI-TS Ordermanagement sign-off in the template and leave the register block to that layout.
 

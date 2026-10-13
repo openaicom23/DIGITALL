@@ -4,7 +4,7 @@
 
 Писмото не тръгва само при смяна на статус. Затова не създаваш запис в System Notification > Email > Notifications.
 
-Преди шаблона ти трябват истинските имена на полетата. В стъпките по-долу те са записани като ПРИМЕР. Смени ги с имената от стъпка 1.
+`u_abstimmpartner` е списък (List) към `sys_user` и може да съдържа много потребители. `${u_abstimmpartner.email}` работи само за едно референтно поле, затова в To не се появява имейл. Адресите се сглобяват при отваряне на шаблона, без ново поле на поръчката. Останалите полета в текста още са пример, докато не вземеш Column name от формата.
 
 ## Стъпка 1. Запиши имената на полетата
 
@@ -22,10 +22,16 @@
 | Kontierungsobjekt | Обект за контиране в текста |
 | Ordermanager | Име за въпроси в текста |
 
-Пример, ако колоните се казват така:
+Потвърдено:
+
+- Abstimmpartner intern: `u_abstimmpartner`, тип List към `sys_user`, много потребители
+- To в шаблона: само `u_abstimmpartner`, без `${}` и без `.email`
+
+`${u_abstimmpartner.email}` при списък остава празно. Имейл клиентът разгъва списък от потребители, когато в To е само името на полето.
+
+Останалите колони провери на формата. Пример, ако се казват така:
 
 - таблица: `u_order`
-- Abstimmpartner intern: `u_abstimmpartner`
 - номер: `number`
 - заглавие: `short_description`
 - крайна дата: `u_planned_end`
@@ -60,21 +66,68 @@ sys_email_client_template.list
 - Name: `Kontierungserinnerung`
 - Table: таблицата от стъпка 1. Не слагай `task`, ако поръчката е отделна таблица. Иначе шаблонът няма да излезе в списъка на поръчката.
 - User: празно
-- To: `${u_abstimmpartner.email}`
+- To: `u_abstimmpartner`
 - CC: празно
 - BCC: празно
 - Subject: редът от стъпка 4
 - Body: текстът от стъпка 4
 
-Смени `u_abstimmpartner` с Column name на Abstimmpartner intern.
+В To се пише само името на полето. Без `${}`, без `.email` и без запетаи. Имейл клиентът в момента на избора намира потребителите от списъка и слага адресите им. Ако шаблонът вече има `${u_abstimmpartner.email}`, изтрий го и остави `u_abstimmpartner`.
 
-Ако това поле е един потребител, To е `${име_на_полето.email}`.
-Ако получателите са няколко потребителски полета, раздели ги със запетая: `${поле1.email}, ${поле2.email}`.
-Ако е група със собствен имейл, сложи имейла на групата.
-Ако е списък от потребители без имейл на групата, остави To празно. Потребителят ще го попълни ръчно преди изпращане.
+Ако след нов избор на шаблона To пак е празно, не създавай поле. Минаваш на стъпка 3а.
 
 5. Condition остави празно.
 6. Натисни Submit.
+
+## Стъпка 3а. Само ако голото име на полето не напълни To
+
+Създай Script Include, не Client callable:
+
+- Name: `AbstimmpartnerEmails`
+- Application: същото приложение като таблицата на поръчката, или Global с достъп от това приложение
+
+```javascript
+var AbstimmpartnerEmails = Class.create();
+AbstimmpartnerEmails.prototype = {
+    initialize: function() {},
+
+    getEmails: function() {
+        var emails = [];
+        var seen = {};
+        var ids = '';
+        if (typeof current !== 'undefined' && current)
+            ids = current.getValue('u_abstimmpartner') || '';
+
+        if (!ids)
+            return '';
+
+        var user = new GlideRecord('sys_user');
+        user.addQuery('sys_id', 'IN', ids);
+        user.query();
+        while (user.next()) {
+            var addr = (user.getValue('email') || '').trim();
+            var key = addr.toLowerCase();
+            if (addr && !seen[key]) {
+                seen[key] = true;
+                emails.push(addr);
+            }
+        }
+        return emails.join(',');
+    },
+
+    type: 'AbstimmpartnerEmails'
+};
+```
+
+В To на шаблона сложи само този ред, без друго около него:
+
+```text
+javascript:new AbstimmpartnerEmails().getEmails();
+```
+
+Скриптът тръгва при избор на шаблона и връща адресите в този момент. Запетая в самия ред To чупи разчитането, затова целият скрипт е в Script Include, а в To остава едно извикване.
+
+Потребител без Email в `sys_user` не влиза в списъка.
 
 ## Стъпка 4. Тема и текст
 
@@ -124,7 +177,7 @@ Vorsitzender des Aufsichtsrates: Detlev Klage
 2. Натисни Email.
 3. В падащия списък на шаблоните избери `Kontierungserinnerung`. Ако го няма, Table на шаблона не е таблицата на тази поръчка. Поправи Table и отвори Email отново.
 4. Провери какво се е попълнило:
-   - To е имейлът на Abstimmpartner intern
+   - To съдържа имейла на всеки потребител от `u_abstimmpartner`, разделен със запетая
    - темата започва с `Erinnerung zur Order`, после номер и заглавие
    - в текста има крайна дата, Kontierungsobjekt и името на Ordermanager
 5. Ако видиш празно място или буквално `${някакво_поле}`, името на полето е грешно. Върни се в шаблона и го смени с Column name от стъпка 1.
@@ -150,3 +203,34 @@ Vorsitzender des Aufsichtsrates: Detlev Klage
 - получателят и текстът се променят преди Send
 - след Send писмото се вижда в Activities
 - запис или смяна на статус не изпращат това писмо
+
+var AbstimmpartnerEmails = Class.create();
+AbstimmpartnerEmails.prototype = {
+    initialize: function() {},
+
+    getEmails: function() {
+        var emails = [];
+        var seen = {};
+        var ids = '';
+        if (typeof current !== 'undefined' && current)
+            ids = current.getValue('u_internal_coordination_partner') || '';
+
+        if (!ids)
+            return '';
+
+        var user = new GlideRecord('sys_user');
+        user.addQuery('sys_id', 'IN', ids);
+        user.query();
+        while (user.next()) {
+            var addr = (user.getValue('email') || '').trim();
+            var key = addr.toLowerCase();
+            if (addr && !seen[key]) {
+                seen[key] = true;
+                emails.push(addr);
+            }
+        }
+        return emails.join(',');
+    },
+
+    type: 'AbstimmpartnerEmails'
+};
