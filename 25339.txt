@@ -14,3 +14,36 @@ Die Notification-Vorlage kann innerhalb der Order durch den Ordermanager ausgew�
 Adressaten und Mailinhalt können editiert werden
 Ordermanager kann nach dem ändern die Notification versenden
 Die Notification ist in den Aktivitäten der Order dokumentiert
+
+################## TEMPLATE #######################################
+An:<Abstimmpartner intern>
+Betrief: Erinnerung zur Order <Order-ID> <Titel der Anfrage>
+
+Guten Tag,
+
+der oben genannte Auftrag endet zum <Geplantes Enddatum>. 
+ 
+Bitte kontieren Sie Ihre angefallenen Change-Aufwände auf das folgende Kontierungselement: <Kontierungsobjekt>.
+
+Bitte geben Sie uns eine kurze Rückmeldung, falls zu diesem Vorhaben keine Aufwände angefallen sein sollten bzw. falls es zu terminlichen Verschiebungen kommt.
+
+Vielen Dank!
+
+Bei Rückfragen wenden Sie sich bitte an <Ordermanager>.
+
+
+Freundliche Grüße
+
+FI-TS Ordermanagement
+
+www.f-i-ts.de
+FI-TS Sicherheitshinweis
+
+Finanz Informatik Technologie Service GmbH & Co. KG
+Handelsregister HRA 69637, Sitz: Haar, Amtsgericht München
+Finanz Informatik Technologie Service Beteiligungsgesellschaft mbH
+Handelsregister HRB 105291, Sitz: Haar, Amtsgericht München
+Geschäftsführer: Christoph Röger (Vorsitzender), Andreas Kopp, Dr. Christian Thiel
+Vorsitzender des Aufsichtsrates: Detlev Klage
+
+############################### END TEMPLATE ###################
