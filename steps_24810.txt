@@ -6,7 +6,7 @@ ServiceNow stores these files in `sys_attachment`. A new read ACL next to the ex
 
 ## 1. Write down the table and the two kinds of user
 
-Open an order and read the table name from the URL, the word before `.do`. Example: `u_order.do` means the table is `u_order`.
+Open an order in CSM/FSM Configurable Workspace. The table name is the segment after `/record/` in the address, before the sys_id. Example: `/now/cwf/agent/record/sn_ind_tmt_orm_order/<sys_id>` means the table is `sn_ind_tmt_orm_order`.
 
 On a customer user and on an FI-TS user, note the roles.
 
@@ -18,7 +18,7 @@ On a customer user and on an FI-TS user, note the roles.
 
 Use those three names in every script below. The samples use `u_order`, `order_manager_role`, and `snc_external`.
 
-The paperclip is the upload point. If the order form has no paperclip, open the table record and clear the attribute `no_attachment`.
+The center Attachments tab is a related list. It lists rows and has no upload button. Leave New off on that list. New creates an empty `sys_attachment` row and does not pick a file. Upload is the paperclip on the right-hand icon rail, in step 7.
 
 ## 2. Add the flag on sys_attachment
 
@@ -170,11 +170,28 @@ FI-TS employees who are not order managers still pass the read rule from step 4,
 
 ## 7. Preview, download, and the portal
 
-Use the UI the order manager actually uses.
+The order opens in CSM/FSM Configurable Workspace. Upload is not on the center Attachments tab.
 
-**Classic form.** The paperclip opens Manage Attachments. Upload adds a `sys_attachment` row on this order. View opens the preview for a PNG or a PDF. Download saves the file. Delete removes that row.
+1. Open the order.
+2. On the narrow vertical rail to the right of Activity, click the paperclip.
+3. The panel has **Add file**. That uploads onto this order.
+4. The card menu on a file previews, downloads, and deletes it.
+5. Refresh the center Attachments tab. The new row is there, and FI-TS intern is true.
 
-**Agent Workspace.** The attachment panel on the order does the same four actions. It writes the same `sys_attachment` rows, so the flag and the rules apply there too.
+Both the panel and the related list read `sys_attachment`, so the flag and the access rules apply to either place.
+
+If the rail has no paperclip, add the component:
+
+1. Now Experience Framework > UI Builder.
+2. Open the **CSM/FSM Configurable Workspace** experience. Its path contains `/cwf`.
+3. Open the **Record** page variant this order actually uses. The variant condition matches the table from step 1.
+4. In the content tree, open **Tab sidebar**.
+5. Next to Tabs, click **+ Add** and start from an empty container.
+6. Label: `Attachments`. Icon: paperclip.
+7. On that tab, **Add content**, search `Attachments`, and select `now-record-common-attachments-connected`. Take the preset for the current record when it is offered.
+8. Bind Table and Sys ID to the page parameters `table` and `sysId`. Those are the two values after `/record/` in the order URL.
+9. Use the full component, so the panel has search, preview, download, and delete.
+10. Save and reload the order. The paperclip is on the right-hand rail.
 
 The portal order page has nothing new to build when steps 4 and 5 are in place. The customer attachment list and the activity stream read `sys_attachment`. Flagged rows are filtered out, and a direct file URL is denied.
 
@@ -188,7 +205,7 @@ gr.addQuery('u_internal', '!=', true);
 
 Use a PNG and a PDF. Impersonate each user. Elevate back to admin between checks on `sys_attachment`.
 
-1. As the order manager, open an order and upload both files from the paperclip or the Workspace attachment panel.
+1. As the order manager, click the paperclip on the right-hand rail and upload both files with Add file.
 2. On the Attachments related list, FI-TS intern is true on both rows.
 3. Preview the PNG. Download the PDF and open it. Both succeed.
 4. Delete the PNG. The row is gone from the related list and from `sys_attachment.list`. The old preview URL no longer opens the file.
