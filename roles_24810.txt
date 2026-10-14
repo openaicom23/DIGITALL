@@ -1,0 +1,14 @@
+sn_ind_tmt_orm.fulfillment_viewer	A granular role created to give read access to fulfillment tasks.	false
+sn_ind_tmt_orm.fulfillment_writer	A granular role created to give write access to fulfillment tasks.	false
+sn_ind_tmt_orm.order_admin	An admin role for read, write, and update access for Order tables.	false
+sn_ind_tmt_orm.order_agent	Allows read, create, and update access to orders, order line items, order characteristic values, price adjustments. Allows to read order tasks, product order, service order, resource orders.	false
+sn_ind_tmt_orm.order_approver	The Order Approver role provides authorized users to approve customer orders within Order Management for Telecommunications. This role is included in the Order Management Business Stakeholder role, which has a fee associated with it. Please review the documentation for additional details.	false
+sn_ind_tmt_orm.order_creator	Can create orders. This should be used to send order via REST Web Services.	false
+sn_ind_tmt_orm.order_fulfilment_agent	Order Fulfilment Agent can view Product Order , Product Order Task, Service Order and Resource Order. Also agent can edit some fields from the Tasks.	false
+sn_ind_tmt_orm.order_fulfilment_manager	Order Fulfilment Manager can view/ edit Product Order , Product Order Task, Service Order and Resource Order. 	false
+sn_ind_tmt_orm.order_integrator	Can create orders. This should be used to send order via REST Web Services.	false
+sn_ind_tmt_orm.order_internal_contacts_user		false
+sn_ind_tmt_orm.order_internal_contact_user		false
+sn_ind_tmt_orm.order_viewer	The Order viewer role provides authorized users the ability to view customer, product, service, and resource orders and any related order tasks within Order Management for Telecommunications. This role is included in the Order Management Business Stakeholder role, which has a fee associated with it. Please review the documentation for additional details.	false
+sn_ind_tmt_orm.service_order_agent	Service Order Agent can view Service Order and Resource Order. Also agent can edit some fields from the Tasks.	false
+sn_ind_tmt_orm.service_order_manager	Service Order Manager can view/ edit Service Order and Resource Order. 
