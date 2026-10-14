@@ -100,8 +100,11 @@ OrderAttachmentAccess.prototype = {
 
 ## Стъпка 2. Файл на поръчката става internal
 
-1. `sys_script.list`, New.
-2. Попълни:
+Създай правилото в **Global**. `sys_attachment` и `u_document_status` са глобални. Качването минава през глобалния attachment процесор. Правило в `sn_ind_tmt_orm` може да не тръгне при това качване и да не може да пише в глобалното поле.
+
+1. Смени приложението горе вдясно на Global.
+2. `sys_script.list`, New.
+3. Попълни:
 
 - Name: `Order attachment is internal`
 - Table: `sys_attachment`
@@ -117,7 +120,7 @@ OrderAttachmentAccess.prototype = {
 })(current, previous);
 ```
 
-3. Submit.
+4. Submit.
 
 Стойността в скрипта е Value от choice листа, не етикетът. Ако в `sys_choice` за `sys_attachment.u_document_status` Value е различно от `internal`, сложи това Value.
 

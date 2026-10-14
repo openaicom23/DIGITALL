@@ -95,7 +95,9 @@ If `u_internal` was already added, delete that dictionary entry and any business
 
 ## 2. An order file is stored as internal
 
-Create a business rule on `sys_attachment`:
+Create this business rule in **Global**. `sys_attachment` and `u_document_status` are global. The upload goes through the global attachment processor. A rule in `sn_ind_tmt_orm` can miss that insert and can be blocked from writing the global field.
+
+Switch the application picker to Global, then create a business rule on `sys_attachment`:
 
 - **When:** before
 - **Insert:** checked
