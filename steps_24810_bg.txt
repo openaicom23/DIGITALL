@@ -1,30 +1,97 @@
 Как се изпълнява история 24810
 
-Поръчката се отваря в CSM/FSM Configurable Workspace. Кламерът в дясната лента качва, преглежда, тегли и трие. Табът Attachments в средата показва същите файлове. И двете места пишат в `sys_attachment`.
+Поръчката е `sn_ind_tmt_orm_order`. Файловете са в `sys_attachment`. Кламерът в дясната лента качва, преглежда, тегли и трие. Табът Attachments показва същите редове.
 
-Ново поле на `sys_attachment` не се прави. `snc_external` не вижда файловете, чиято таблица е таблицата на поръчката. Кой файл е скрит се познава по `table_name`, не по флаг.
+Ново поле на `sys_attachment` не се прави. Достъпът се решава от ролите в `roles_24810.txt`.
 
-## Какво иска заданието
+Кой какво прави:
 
-1. Мениджърът на поръчката качва файл към поръчката, когато му трябва.
-2. Мениджърът може да изтрие файла по всяко време.
-3. Служител на FI-TS може по всяко време да отвори и да изтегли файла.
-4. `snc_external` не вижда файла в портала и не го отваря по адрес.
-5. Проверени са качване, преглед и изтриване.
+- Качва и трие: `sn_ind_tmt_orm.order_admin`, `sn_ind_tmt_orm.order_agent`, `sn_ind_tmt_orm.order_fulfilment_manager`. Описанията им са писане и промяна на поръчката.
+- Преглежда и тегли: всяка роля от `roles_24810.txt`.
+- `snc_external` я няма в този списък и не вижда файловете на поръчката.
 
-## Стъпка 1. Запиши таблицата и ролята на мениджъра
+## Стъпка 1. Един Script Include с ролите
 
-1. Отвори поръчка в workspace.
-2. В адреса след `/record/` е таблицата, после sys_id. Запиши таблицата.
-3. Запиши ролята на мениджъра на поръчката.
+Работи в Global, за да го викат правата.
 
-Таблицата в скриптовете е `sn_ind_tmt_orm_order`. Ролята на мениджъра е написана като `order_manager_role`. Смени само нея със записаната. `snc_external` остава както е написано.
+1. `sys_script_include.list`, New.
+2. Name: `OrderAttachmentAccess`
+3. Client callable: изключено
+4. Скрипт:
 
-Ако вече има поле `u_internal` и business rule, което го пълни, изтрий полето и това правило. Те не влизат в решението.
+```javascript
+var OrderAttachmentAccess = Class.create();
+OrderAttachmentAccess.prototype = {
+    initialize: function() {},
 
-## Стъпка 2. Скрий файловете на поръчката от snc_external
+    ORDER_TABLE: 'sn_ind_tmt_orm_order',
 
-Преди правата: иконата на потребителя, Elevate Roles, `security_admin`.
+    READ_ROLES: [
+        'sn_ind_tmt_orm.fulfillment_viewer',
+        'sn_ind_tmt_orm.fulfillment_writer',
+        'sn_ind_tmt_orm.order_admin',
+        'sn_ind_tmt_orm.order_agent',
+        'sn_ind_tmt_orm.order_approver',
+        'sn_ind_tmt_orm.order_creator',
+        'sn_ind_tmt_orm.order_fulfilment_agent',
+        'sn_ind_tmt_orm.order_fulfilment_manager',
+        'sn_ind_tmt_orm.order_integrator',
+        'sn_ind_tmt_orm.order_internal_contacts_user',
+        'sn_ind_tmt_orm.order_internal_contact_user',
+        'sn_ind_tmt_orm.order_viewer',
+        'sn_ind_tmt_orm.service_order_agent',
+        'sn_ind_tmt_orm.service_order_manager'
+    ],
+
+    MANAGE_ROLES: [
+        'sn_ind_tmt_orm.order_admin',
+        'sn_ind_tmt_orm.order_agent',
+        'sn_ind_tmt_orm.order_fulfilment_manager'
+    ],
+
+    _hasAny: function(roles) {
+        for (var i = 0; i < roles.length; i++) {
+            if (gs.hasRole(roles[i]))
+                return true;
+        }
+        return false;
+    },
+
+    canRead: function(attachment) {
+        if (!attachment || attachment.getValue('table_name') != this.ORDER_TABLE)
+            return true;
+        return this._hasAny(this.READ_ROLES);
+    },
+
+    canManage: function(attachment) {
+        if (!attachment || attachment.getValue('table_name') != this.ORDER_TABLE)
+            return true;
+        return this._hasAny(this.MANAGE_ROLES);
+    },
+
+    isManagerOnOrder: function(attachment) {
+        return !!attachment &&
+            attachment.getValue('table_name') == this.ORDER_TABLE &&
+            this._hasAny(this.MANAGE_ROLES);
+    },
+
+    hideFromQuery: function(current) {
+        if (gs.hasRole('admin') || this._hasAny(this.READ_ROLES))
+            return;
+        current.addQuery('table_name', '!=', this.ORDER_TABLE);
+    },
+
+    type: 'OrderAttachmentAccess'
+};
+```
+
+5. Submit.
+
+Ако вече има поле `u_internal` и business rule, което го пълни, изтрий полето и това правило.
+
+## Стъпка 2. Read за ролите от файла
+
+Преди правата: Elevate Roles, `security_admin`.
 
 Ново read правило до старото не стига. Старото пуска всеки, който чете поръчката. Затова правилото е Deny unless.
 
@@ -39,111 +106,90 @@
 - Requires role: празно
 - Advanced: включено
 
-Роля в Requires role би спряла и служителите на FI-TS. Скриптът спира само `snc_external` и само за файлове на поръчката.
-
 3. Скрипт:
 
 ```javascript
-var orderTable = 'sn_ind_tmt_orm_order';
-
-if (current.getValue('table_name') == orderTable && gs.hasRole('snc_external'))
-    answer = false;
-else
-    answer = true;
+answer = new OrderAttachmentAccess().canRead(current);
 ```
 
 4. Submit.
 
-`answer = false` отказва файла, включително по директен адрес. `answer = true` оставя старото read правило. Служител на FI-TS без `snc_external` вижда файла, ако може да отвори поръчката. Файл на друга таблица това правило не го пипа.
+За файл на `sn_ind_tmt_orm_order` минава само потребител с роля от `READ_ROLES`. `snc_external` отпада, включително по директен адрес. Файл на друга таблица това правило го пуска към старите права.
 
 Ако на формата няма Decision type, мини на последната секция.
 
-## Стъпка 3. Скрий ги и в списъка на портала
+## Стъпка 3. Същият филтър в списъка на портала
 
 Виджет в портала често чете с `GlideRecord` и прескача правата.
 
 1. `sys_script.list`, New.
 2. Попълни:
 
-- Name: `Hide order attachments from snc_external`
+- Name: `Hide order attachments from users outside ORM roles`
 - Table: `sys_attachment`
 - Advanced: включено
 - When: before
 - Query: включено
 - Insert, Update, Delete: изключени
-- Filter: празно
 
 ```javascript
 (function executeRule(current, previous) {
-    if (gs.hasRole('snc_external'))
-        current.addQuery('table_name', '!=', 'sn_ind_tmt_orm_order');
+    new OrderAttachmentAccess().hideFromQuery(current);
 })(current, previous);
 ```
 
 3. Submit.
 
-Потребител с `snc_external` не получава редовете на поръчката. Вътрешен потребител няма този филтър.
+Потребител без роля от `roles_24810.txt` не получава редовете на поръчката. Потребител с такава роля, и admin, ги получават.
 
-## Стъпка 4. Изтриване само за мениджъра на поръчката
+## Стъпка 4. Качване и изтриване
 
-Изтриването трябва да работи и когато поръчката е само за четене. Старото delete правило гледа дали потребителят пише по поръчката. Затова има Deny unless и едно Allow if.
+Изтриването трябва да работи и когато поръчката е само за четене. Старото delete правило гледа дали потребителят пише по поръчката.
 
-Четири правила на `sys_attachment`. При двете Deny unless Requires role остава празно.
+Четири правила на `sys_attachment`. Requires role на всичките е празно. Ролите се решават в скрипта, защото няколко роли в Requires role се искат едновременно.
 
-**Delete, Deny unless.** Operation: delete. Decision type: Deny unless.
+**Delete, Deny unless** и **Create, Deny unless.** Един и същ скрипт:
 
 ```javascript
-var orderTable = 'sn_ind_tmt_orm_order';
-var managerRole = 'order_manager_role';
-
-if (current.getValue('table_name') != orderTable)
-    answer = true;
-else
-    answer = gs.hasRole(managerRole);
+answer = new OrderAttachmentAccess().canManage(current);
 ```
 
-**Delete, Allow if.** Operation: delete. Decision type: Allow if.
+**Delete, Allow if** и **Create, Allow if.** Operation съответно delete и create. Decision type: Allow if. Condition празно. Скрипт:
 
-- Requires role: ролята на мениджъра
-- Condition: Table name is `sn_ind_tmt_orm_order`
-- Script: `answer = true;`
+```javascript
+answer = new OrderAttachmentAccess().isManagerOnOrder(current);
+```
 
-**Create, Deny unless.** Същият скрипт като при delete.
+Това Allow if дава право само на мениджърските роли и само за файл на поръчката. На други таблици не добавя нищо.
 
-**Create, Allow if.** Същата роля и същото условие като Allow if за delete.
+`order_viewer`, `order_approver`, `order_fulfilment_agent`, `fulfillment_viewer`, `fulfillment_writer`, `service_order_agent`, `service_order_manager`, `order_creator`, `order_integrator` и двете internal contact роли преглеждат и теглят. Не качват и не трият.
 
-Служител на FI-TS, който не е мениджър, преглежда и тегли. Изтриването остава за мениджъра. `snc_external` не качва файл на поръчката.
-
-## Стъпка 5. Провери качване, преглед и изтриване
+## Стъпка 5. Провери
 
 Приготви един PNG и един PDF.
 
-1. Като мениджър отвори поръчка. Натисни кламера в дясната лента.
-2. С Add file качи двата файла.
-3. Прегледай PNG от менюто на файла. Изтегли PDF и го отвори.
-4. Опресни таб Attachments. И двата реда са там.
-5. От кламера изтрий PNG. Редът изчезва от панела и от таба. Старият адрес за преглед не отваря файла.
-6. Запиши поръчката и смени статуса. PDF остава един.
-7. Като служител на FI-TS, който не е мениджър и може да отвори поръчката, прегледай и изтегли PDF. Изтриване няма.
-8. Влез с потребител, който има `snc_external`. Отвори същата поръчка в портала. Файлът го няма в списъка и го няма в активността.
-9. Същият потребител отваря `/sys_attachment.do?sys_id=<sys_id на pdf>` и `/api/now/attachment/<sys_id>/file`. И двата адреса се отказват.
-10. Същият потребител отваря файл, закачен на друга таблица. Той се отваря, ако и досега е имал достъп до него.
+1. С потребител, който има `sn_ind_tmt_orm.order_agent`, отвори поръчка и качи двата файла от кламера.
+2. Прегледай PNG. Изтегли PDF и го отвори.
+3. В таб Attachments и двата реда са там.
+4. Изтрий PNG. Редът изчезва от панела и от таба.
+5. Същото качване и изтриване минава с `sn_ind_tmt_orm.order_admin` и с `sn_ind_tmt_orm.order_fulfilment_manager`.
+6. С `sn_ind_tmt_orm.order_viewer` прегледай и изтегли PDF. Качване и изтриване няма.
+7. С потребител, който има `snc_external` и няма роля от `roles_24810.txt`, отвори поръчката в портала. Файлът го няма.
+8. Същият потребител отваря `/sys_attachment.do?sys_id=<sys_id на pdf>` и `/api/now/attachment/<sys_id>/file`. И двата адреса се отказват.
+9. Същият потребител отваря файл на друга таблица. Той се отваря, ако и досега е имал достъп до него.
 
 ## Историята е готова, когато
 
-- мениджърът качва файл от кламера и редът се вижда в таб Attachments
-- мениджърът преглежда, тегли и трие, включително при поръчка само за четене
-- служител на FI-TS преглежда и тегли
-- потребител с `snc_external` не вижда файла на поръчката и не го отваря по адрес
+- `order_agent`, `order_admin` и `order_fulfilment_manager` качват, преглеждат, теглят и трият
+- останалите роли от `roles_24810.txt` преглеждат и теглят
+- `snc_external` не вижда файла на поръчката и не го отваря по адрес
 
 ## Ако snc_external все пак сваля файла
 
-Свалянето вика script include `AttachmentSecurity`, метод `canRead`. Ако стъпка 5.9 върне файла, този метод го пуска отделно от правата.
-
-Include-ът често е Read-only. Дублирай го. Новото име и `type` са `CustomAttachmentSecurity`. Запази копираната логика. Най-отгоре в `canRead` сложи:
+Свалянето вика `AttachmentSecurity.canRead`. Ако стъпка 5.8 върне файла, дублирай include-а. Новото име и `type` са `CustomAttachmentSecurity`. Най-отгоре в `canRead`, преди копираната логика:
 
 ```javascript
-if (current.getValue('table_name') == 'sn_ind_tmt_orm_order' && gs.hasRole('snc_external'))
+if (!new OrderAttachmentAccess().canRead(current))
     return false;
 ```
 

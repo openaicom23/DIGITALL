@@ -1,26 +1,92 @@
-Order attachments stay inside FI-TS. Story: `24810.txt`.
+Order attachments on `sn_ind_tmt_orm_order`. Story: `24810.txt`. Roles: `roles_24810.txt`.
 
-The order manager uploads, previews, downloads, and deletes files on the order. An FI-TS employee who can open the order previews and downloads them. A user with `snc_external` does not see the files on that order and cannot open them by URL.
+Files stay in `sys_attachment`. No new field. The paperclip on the right-hand rail uploads, previews, downloads, and deletes. The Attachments tab lists the same rows.
 
-There is no new field on `sys_attachment`. A file is hidden because `table_name` is the order table and the user has `snc_external`.
+Who can do what, from `roles_24810.txt`:
 
-The center Attachments tab only lists rows. Upload, preview, download, and delete are the paperclip on the right-hand rail of CSM/FSM Configurable Workspace. Both write to `sys_attachment`.
+- Upload and delete: `sn_ind_tmt_orm.order_admin`, `sn_ind_tmt_orm.order_agent`, `sn_ind_tmt_orm.order_fulfilment_manager`. Their descriptions are write and update on the order.
+- Preview and download: every role in `roles_24810.txt`.
+- `snc_external` is not in that list, so that user does not see files on this order.
 
-A second read ACL next to the existing one does not hide the file: the out-of-box rule still grants access when the user can read the order. Hiding is a Deny unless rule, plus a before-query rule, because a portal widget that uses `GlideRecord` does not apply access controls.
+A second read ACL next to the existing one does not hide a file. The out-of-box rule still grants access when the user can read the order. Hiding is a Deny unless rule, plus a before-query rule, because a portal widget that uses `GlideRecord` does not apply access controls.
 
-## 1. Write down the table and the order manager role
+## 1. One script include for the roles
 
-Open an order. The table name is the segment after `/record/` in the address, before the sys_id.
+Create it in Global so the access rules can call it.
 
-The order table in the scripts is `sn_ind_tmt_orm_order`. Replace `order_manager_role` with the real order manager role. Leave `snc_external` as written.
+`sys_script_include.list`, New. Name: `OrderAttachmentAccess`. Client callable: false.
+
+```javascript
+var OrderAttachmentAccess = Class.create();
+OrderAttachmentAccess.prototype = {
+    initialize: function() {},
+
+    ORDER_TABLE: 'sn_ind_tmt_orm_order',
+
+    READ_ROLES: [
+        'sn_ind_tmt_orm.fulfillment_viewer',
+        'sn_ind_tmt_orm.fulfillment_writer',
+        'sn_ind_tmt_orm.order_admin',
+        'sn_ind_tmt_orm.order_agent',
+        'sn_ind_tmt_orm.order_approver',
+        'sn_ind_tmt_orm.order_creator',
+        'sn_ind_tmt_orm.order_fulfilment_agent',
+        'sn_ind_tmt_orm.order_fulfilment_manager',
+        'sn_ind_tmt_orm.order_integrator',
+        'sn_ind_tmt_orm.order_internal_contacts_user',
+        'sn_ind_tmt_orm.order_internal_contact_user',
+        'sn_ind_tmt_orm.order_viewer',
+        'sn_ind_tmt_orm.service_order_agent',
+        'sn_ind_tmt_orm.service_order_manager'
+    ],
+
+    MANAGE_ROLES: [
+        'sn_ind_tmt_orm.order_admin',
+        'sn_ind_tmt_orm.order_agent',
+        'sn_ind_tmt_orm.order_fulfilment_manager'
+    ],
+
+    _hasAny: function(roles) {
+        for (var i = 0; i < roles.length; i++) {
+            if (gs.hasRole(roles[i]))
+                return true;
+        }
+        return false;
+    },
+
+    canRead: function(attachment) {
+        if (!attachment || attachment.getValue('table_name') != this.ORDER_TABLE)
+            return true;
+        return this._hasAny(this.READ_ROLES);
+    },
+
+    canManage: function(attachment) {
+        if (!attachment || attachment.getValue('table_name') != this.ORDER_TABLE)
+            return true;
+        return this._hasAny(this.MANAGE_ROLES);
+    },
+
+    isManagerOnOrder: function(attachment) {
+        return !!attachment &&
+            attachment.getValue('table_name') == this.ORDER_TABLE &&
+            this._hasAny(this.MANAGE_ROLES);
+    },
+
+    hideFromQuery: function(current) {
+        if (gs.hasRole('admin') || this._hasAny(this.READ_ROLES))
+            return;
+        current.addQuery('table_name', '!=', this.ORDER_TABLE);
+    },
+
+    type: 'OrderAttachmentAccess'
+};
+```
 
 If `u_internal` was already added, delete that dictionary entry and any business rule that sets it.
 
-## 2. Hide order files from snc_external
+## 2. Read access
 
-Elevate to `security_admin`. System Security > Access Control, or `sys_security_acl.list`.
-
-Create a **read** rule on `sys_attachment`:
+Elevate to `security_admin`. Create a **read** rule on `sys_attachment`:
 
 - **Type:** record
 - **Operation:** read
@@ -30,95 +96,67 @@ Create a **read** rule on `sys_attachment`:
 - **Advanced:** checked
 
 ```javascript
-var orderTable = 'sn_ind_tmt_orm_order';
-
-if (current.getValue('table_name') == orderTable && gs.hasRole('snc_external'))
-    answer = false;
-else
-    answer = true;
+answer = new OrderAttachmentAccess().canRead(current);
 ```
 
-Deny unless is evaluated before the existing allow rules. `answer = false` denies the file, including a direct URL. `answer = true` leaves the existing read rule in place, so an FI-TS user without `snc_external` still needs to be allowed to read the order. A file on another table is outside this rule.
+On `sn_ind_tmt_orm_order`, only a user with a role from `READ_ROLES` passes. `snc_external` is denied, including a direct URL. A file on another table keeps its existing read rules.
 
-## 3. Hide the same files in portal lists
+## 3. Portal list
 
-Portal server scripts often use `GlideRecord`, which skips access controls. Add a business rule on `sys_attachment`:
-
-- **When:** before
-- **Query:** checked
-- **Insert / Update / Delete:** unchecked
-- **Advanced:** checked
-- **Filter:** empty
+Add a before-query business rule on `sys_attachment`. Query checked. Insert, update, and delete unchecked.
 
 ```javascript
 (function executeRule(current, previous) {
-    if (gs.hasRole('snc_external'))
-        current.addQuery('table_name', '!=', 'sn_ind_tmt_orm_order');
+    new OrderAttachmentAccess().hideFromQuery(current);
 })(current, previous);
 ```
 
-A user with `snc_external` does not get rows for the order table. An internal user gets no extra filter.
+A user with none of the roles in `roles_24810.txt` does not get rows for this order. A user with one of those roles, and admin, does.
 
-## 4. Upload and delete for the order manager
+## 4. Upload and delete
 
-Delete has to work when the order itself is read-only. The out-of-box delete rule follows write access on the order, so the order manager also needs an allow rule.
+Delete has to work when the order is read-only. The out-of-box delete rule follows write access on the order.
 
-Create these four rules on `sys_attachment`. Leave **Requires role** empty on both Deny unless rules.
+Create four rules on `sys_attachment`. Leave **Requires role** empty on all of them. Several roles in that field are required together, and these checks are any-of.
 
-**Delete, Deny unless:**
+**Delete, Deny unless** and **Create, Deny unless:**
 
 ```javascript
-var orderTable = 'sn_ind_tmt_orm_order';
-var managerRole = 'order_manager_role';
-
-if (current.getValue('table_name') != orderTable)
-    answer = true;
-else
-    answer = gs.hasRole(managerRole);
+answer = new OrderAttachmentAccess().canManage(current);
 ```
 
-**Delete, Allow if:**
+**Delete, Allow if** and **Create, Allow if.** Condition empty.
 
-- **Requires role:** the order manager role
-- **Condition:** Table name is `sn_ind_tmt_orm_order`
-- **Script:** `answer = true;`
+```javascript
+answer = new OrderAttachmentAccess().isManagerOnOrder(current);
+```
 
-**Create, Deny unless:** the same script as delete.
+That allow rule grants create or delete only to the three manage roles, and only for a file on this order.
 
-**Create, Allow if:** the same role and condition as the delete allow rule.
-
-An FI-TS employee who is not an order manager still passes the read rule, so preview and download stay. Delete does not. `snc_external` cannot upload a file onto the order.
+`order_viewer`, `order_approver`, `order_fulfilment_agent`, `fulfillment_viewer`, `fulfillment_writer`, `service_order_agent`, `service_order_manager`, `order_creator`, `order_integrator`, and both internal-contact roles can preview and download. They cannot upload or delete.
 
 ## 5. Test
 
-Use a PNG and a PDF. Impersonate each user.
-
-1. As the order manager, open the paperclip on the right-hand rail and upload both files with Add file.
-2. Preview the PNG. Download the PDF and open it.
-3. Refresh the Attachments tab. Both rows are there.
-4. Delete the PNG. It disappears from the panel and from the tab. The old preview URL no longer opens it.
-5. Save the order and change its status. The PDF remains one row.
-6. As an FI-TS employee who is not an order manager and who can open the order, preview and download the PDF. Delete is unavailable.
-7. As a user with `snc_external`, open the same order in the portal. The file is not in the list and not in the activity.
-8. As that user, open `/sys_attachment.do?sys_id=<pdf sys_id>` and `/api/now/attachment/<pdf sys_id>/file`. Both are denied.
-9. As that user, open an attachment on another table. It still opens when that user could open it before.
+1. As `sn_ind_tmt_orm.order_agent`, upload a PNG and a PDF from the paperclip. Preview the PNG. Download the PDF. Both rows show on the Attachments tab. Delete the PNG.
+2. Repeat upload and delete as `sn_ind_tmt_orm.order_admin` and as `sn_ind_tmt_orm.order_fulfilment_manager`.
+3. As `sn_ind_tmt_orm.order_viewer`, preview and download the PDF. Upload and delete are unavailable.
+4. As a user who has `snc_external` and none of the roles in `roles_24810.txt`, open the order in the portal. The file is absent.
+5. As that user, open `/sys_attachment.do?sys_id=<pdf sys_id>` and `/api/now/attachment/<pdf sys_id>/file`. Both are denied.
+6. As that user, open an attachment on another table. It still opens when that user could open it before.
 
 ## 6. Close the story when all of these are true
 
-- The order manager can upload an attachment, and it shows on the Attachments tab.
-- The order manager can preview, download, and delete it, including when the order is read-only.
-- An FI-TS employee who can open the order can preview and download it.
-- A user with `snc_external` does not see the order file and cannot open it by URL.
+- `order_agent`, `order_admin`, and `order_fulfilment_manager` can upload, preview, download, and delete.
+- The other roles in `roles_24810.txt` can preview and download.
+- `snc_external` does not see the order file and cannot open it by URL.
 
 ## Fallback when snc_external can still download the file
 
-The download processor calls `AttachmentSecurity.canRead`. If step 5.8 still returns the file, that method is granting access on its own.
-
-`AttachmentSecurity` is often read-only. Duplicate it, set the name and `type` to `CustomAttachmentSecurity`, and keep the copied logic. At the top of `canRead` add:
+The download processor calls `AttachmentSecurity.canRead`. If step 5.5 still returns the file, duplicate that include as `CustomAttachmentSecurity` and add this at the top of `canRead`:
 
 ```javascript
-if (current.getValue('table_name') == 'sn_ind_tmt_orm_order' && gs.hasRole('snc_external'))
+if (!new OrderAttachmentAccess().canRead(current))
     return false;
 ```
 
-Point the existing read ACL that calls `AttachmentSecurity` at `CustomAttachmentSecurity`.
+Point the read ACL that calls `AttachmentSecurity` at `CustomAttachmentSecurity`.
