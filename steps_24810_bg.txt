@@ -2,13 +2,13 @@
 
 Поръчката е `sn_ind_tmt_orm_order`. Файловете са в `sys_attachment`. Кламерът в дясната лента качва, преглежда, тегли и трие. Табът Attachments показва същите редове.
 
-Ново поле на `sys_attachment` не се прави. Достъпът се решава от ролите в `roles_24810.txt`.
+Ново поле не се създава. На `sys_attachment` вече има `u_document_status` със стойности `internal` и `external`. Файл, качен на поръчката, се записва като `internal`. `snc_external` не вижда редове със стойност `internal`.
 
 Кой какво прави:
 
 - Качва и трие: `sn_ind_tmt_orm.order_admin`, `sn_ind_tmt_orm.order_agent`, `sn_ind_tmt_orm.order_fulfilment_manager`. Описанията им са писане и промяна на поръчката.
 - Преглежда и тегли: всяка роля от `roles_24810.txt`.
-- `snc_external` я няма в този списък и не вижда файловете на поръчката.
+- `snc_external` не вижда файл с `u_document_status` = `internal`.
 
 ## Стъпка 1. Един Script Include с ролите
 
@@ -58,7 +58,11 @@ OrderAttachmentAccess.prototype = {
     },
 
     canRead: function(attachment) {
-        if (!attachment || attachment.getValue('table_name') != this.ORDER_TABLE)
+        if (!attachment)
+            return true;
+        if (attachment.getValue('u_document_status') == 'internal' && gs.hasRole('snc_external'))
+            return false;
+        if (attachment.getValue('table_name') != this.ORDER_TABLE)
             return true;
         return this._hasAny(this.READ_ROLES);
     },
@@ -76,9 +80,14 @@ OrderAttachmentAccess.prototype = {
     },
 
     hideFromQuery: function(current) {
-        if (gs.hasRole('admin') || this._hasAny(this.READ_ROLES))
+        if (gs.hasRole('admin'))
             return;
-        current.addQuery('table_name', '!=', this.ORDER_TABLE);
+        if (gs.hasRole('snc_external')) {
+            current.addQuery('u_document_status', '!=', 'internal');
+            return;
+        }
+        if (!this._hasAny(this.READ_ROLES))
+            current.addQuery('table_name', '!=', this.ORDER_TABLE);
     },
 
     type: 'OrderAttachmentAccess'
@@ -87,9 +96,48 @@ OrderAttachmentAccess.prototype = {
 
 5. Submit.
 
-Ако вече има поле `u_internal` и business rule, което го пълни, изтрий полето и това правило.
+Ако вече има поле `u_internal` и business rule, което го пълни, изтрий полето и това правило. Ползва се `u_document_status`.
 
-## Стъпка 2. Read за ролите от файла
+## Стъпка 2. Файл на поръчката става internal
+
+1. `sys_script.list`, New.
+2. Попълни:
+
+- Name: `Order attachment is internal`
+- Table: `sys_attachment`
+- Advanced: включено
+- When: before
+- Insert: включено
+- Update: включено
+- Filter: Table name is `sn_ind_tmt_orm_order`
+
+```javascript
+(function executeRule(current, previous) {
+    current.u_document_status = 'internal';
+})(current, previous);
+```
+
+3. Submit.
+
+Стойността в скрипта е Value от choice листа, не етикетът. Ако в `sys_choice` за `sys_attachment.u_document_status` Value е различно от `internal`, сложи това Value.
+
+Вече качени файлове на поръчки, които не са internal, пусни веднъж от Scripts - Background:
+
+```javascript
+var gr = new GlideRecord('sys_attachment');
+gr.addQuery('table_name', 'sn_ind_tmt_orm_order');
+var qc = gr.addNullQuery('u_document_status');
+qc.addOrCondition('u_document_status', '!=', 'internal');
+gr.query();
+while (gr.next()) {
+    gr.u_document_status = 'internal';
+    gr.setWorkflow(false);
+    gr.autoSysFields(false);
+    gr.update();
+}
+```
+
+## Стъпка 3. Read за ролите от файла
 
 Преди правата: Elevate Roles, `security_admin`.
 
@@ -114,11 +162,11 @@ answer = new OrderAttachmentAccess().canRead(current);
 
 4. Submit.
 
-За файл на `sn_ind_tmt_orm_order` минава само потребител с роля от `READ_ROLES`. `snc_external` отпада, включително по директен адрес. Файл на друга таблица това правило го пуска към старите права.
+Файл с `u_document_status` = `internal` се отказва на `snc_external`, включително по директен адрес. Файл на `sn_ind_tmt_orm_order` минава само с роля от `READ_ROLES`. Файл на друга таблица със статус `external` остава по старите права.
 
 Ако на формата няма Decision type, мини на последната секция.
 
-## Стъпка 3. Същият филтър в списъка на портала
+## Стъпка 4. Същият филтър в списъка на портала
 
 Виджет в портала често чете с `GlideRecord` и прескача правата.
 
@@ -140,9 +188,9 @@ answer = new OrderAttachmentAccess().canRead(current);
 
 3. Submit.
 
-Потребител без роля от `roles_24810.txt` не получава редовете на поръчката. Потребител с такава роля, и admin, ги получават.
+Потребител с `snc_external` не получава редове с `u_document_status` = `internal`. Потребител с роля от `roles_24810.txt`, и admin, ги получават.
 
-## Стъпка 4. Качване и изтриване
+## Стъпка 5. Качване и изтриване
 
 Изтриването трябва да работи и когато поръчката е само за четене. Старото delete правило гледа дали потребителят пише по поръчката.
 
@@ -164,29 +212,30 @@ answer = new OrderAttachmentAccess().isManagerOnOrder(current);
 
 `order_viewer`, `order_approver`, `order_fulfilment_agent`, `fulfillment_viewer`, `fulfillment_writer`, `service_order_agent`, `service_order_manager`, `order_creator`, `order_integrator` и двете internal contact роли преглеждат и теглят. Не качват и не трият.
 
-## Стъпка 5. Провери
+## Стъпка 6. Провери
 
 Приготви един PNG и един PDF.
 
 1. С потребител, който има `sn_ind_tmt_orm.order_agent`, отвори поръчка и качи двата файла от кламера.
 2. Прегледай PNG. Изтегли PDF и го отвори.
-3. В таб Attachments и двата реда са там.
+3. В таб Attachments и двата реда са там, Document Status е internal.
 4. Изтрий PNG. Редът изчезва от панела и от таба.
 5. Същото качване и изтриване минава с `sn_ind_tmt_orm.order_admin` и с `sn_ind_tmt_orm.order_fulfilment_manager`.
 6. С `sn_ind_tmt_orm.order_viewer` прегледай и изтегли PDF. Качване и изтриване няма.
 7. С потребител, който има `snc_external` и няма роля от `roles_24810.txt`, отвори поръчката в портала. Файлът го няма.
 8. Същият потребител отваря `/sys_attachment.do?sys_id=<sys_id на pdf>` и `/api/now/attachment/<sys_id>/file`. И двата адреса се отказват.
-9. Същият потребител отваря файл на друга таблица. Той се отваря, ако и досега е имал достъп до него.
+9. Същият потребител отваря файл на друга таблица със статус `external`. Той се отваря, ако и досега е имал достъп до него. Файл със статус `internal` остава скрит.
 
 ## Историята е готова, когато
 
 - `order_agent`, `order_admin` и `order_fulfilment_manager` качват, преглеждат, теглят и трият
 - останалите роли от `roles_24810.txt` преглеждат и теглят
-- `snc_external` не вижда файла на поръчката и не го отваря по адрес
+- качен файл на поръчката има `u_document_status` = `internal`
+- `snc_external` не вижда файл със статус `internal` и не го отваря по адрес
 
 ## Ако snc_external все пак сваля файла
 
-Свалянето вика `AttachmentSecurity.canRead`. Ако стъпка 5.8 върне файла, дублирай include-а. Новото име и `type` са `CustomAttachmentSecurity`. Най-отгоре в `canRead`, преди копираната логика:
+Свалянето вика `AttachmentSecurity.canRead`. Ако стъпка 6.8 върне файла, дублирай include-а. Новото име и `type` са `CustomAttachmentSecurity`. Най-отгоре в `canRead`, преди копираната логика:
 
 ```javascript
 if (!new OrderAttachmentAccess().canRead(current))

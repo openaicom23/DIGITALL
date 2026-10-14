@@ -1,12 +1,12 @@
 Order attachments on `sn_ind_tmt_orm_order`. Story: `24810.txt`. Roles: `roles_24810.txt`.
 
-Files stay in `sys_attachment`. No new field. The paperclip on the right-hand rail uploads, previews, downloads, and deletes. The Attachments tab lists the same rows.
+Files stay in `sys_attachment`. No new field. `sys_attachment` already has `u_document_status` with values `internal` and `external`. A file uploaded on the order is stored as `internal`. A user with `snc_external` does not see rows whose status is `internal`.
 
 Who can do what, from `roles_24810.txt`:
 
 - Upload and delete: `sn_ind_tmt_orm.order_admin`, `sn_ind_tmt_orm.order_agent`, `sn_ind_tmt_orm.order_fulfilment_manager`. Their descriptions are write and update on the order.
 - Preview and download: every role in `roles_24810.txt`.
-- `snc_external` is not in that list, so that user does not see files on this order.
+- `snc_external` does not see a file whose `u_document_status` is `internal`.
 
 A second read ACL next to the existing one does not hide a file. The out-of-box rule still grants access when the user can read the order. Hiding is a Deny unless rule, plus a before-query rule, because a portal widget that uses `GlideRecord` does not apply access controls.
 
@@ -55,7 +55,11 @@ OrderAttachmentAccess.prototype = {
     },
 
     canRead: function(attachment) {
-        if (!attachment || attachment.getValue('table_name') != this.ORDER_TABLE)
+        if (!attachment)
+            return true;
+        if (attachment.getValue('u_document_status') == 'internal' && gs.hasRole('snc_external'))
+            return false;
+        if (attachment.getValue('table_name') != this.ORDER_TABLE)
             return true;
         return this._hasAny(this.READ_ROLES);
     },
@@ -73,18 +77,56 @@ OrderAttachmentAccess.prototype = {
     },
 
     hideFromQuery: function(current) {
-        if (gs.hasRole('admin') || this._hasAny(this.READ_ROLES))
+        if (gs.hasRole('admin'))
             return;
-        current.addQuery('table_name', '!=', this.ORDER_TABLE);
+        if (gs.hasRole('snc_external')) {
+            current.addQuery('u_document_status', '!=', 'internal');
+            return;
+        }
+        if (!this._hasAny(this.READ_ROLES))
+            current.addQuery('table_name', '!=', this.ORDER_TABLE);
     },
 
     type: 'OrderAttachmentAccess'
 };
 ```
 
-If `u_internal` was already added, delete that dictionary entry and any business rule that sets it.
+If `u_internal` was already added, delete that dictionary entry and any business rule that sets it. Status is `u_document_status`.
 
-## 2. Read access
+## 2. An order file is stored as internal
+
+Create a business rule on `sys_attachment`:
+
+- **When:** before
+- **Insert:** checked
+- **Update:** checked
+- **Filter:** Table name is `sn_ind_tmt_orm_order`
+
+```javascript
+(function executeRule(current, previous) {
+    current.u_document_status = 'internal';
+})(current, previous);
+```
+
+The string in the script is the choice Value, not the label. If `sys_choice` for `sys_attachment.u_document_status` stores a different Value, use that Value.
+
+Files already on orders that are not internal, run once in Scripts - Background:
+
+```javascript
+var gr = new GlideRecord('sys_attachment');
+gr.addQuery('table_name', 'sn_ind_tmt_orm_order');
+var qc = gr.addNullQuery('u_document_status');
+qc.addOrCondition('u_document_status', '!=', 'internal');
+gr.query();
+while (gr.next()) {
+    gr.u_document_status = 'internal';
+    gr.setWorkflow(false);
+    gr.autoSysFields(false);
+    gr.update();
+}
+```
+
+## 3. Read access
 
 Elevate to `security_admin`. Create a **read** rule on `sys_attachment`:
 
@@ -99,9 +141,9 @@ Elevate to `security_admin`. Create a **read** rule on `sys_attachment`:
 answer = new OrderAttachmentAccess().canRead(current);
 ```
 
-On `sn_ind_tmt_orm_order`, only a user with a role from `READ_ROLES` passes. `snc_external` is denied, including a direct URL. A file on another table keeps its existing read rules.
+A file with `u_document_status` = `internal` is denied for `snc_external`, including a direct URL. A file on `sn_ind_tmt_orm_order` passes only for a role in `READ_ROLES`. A file on another table with status `external` keeps its existing read rules.
 
-## 3. Portal list
+## 4. Portal list
 
 Add a before-query business rule on `sys_attachment`. Query checked. Insert, update, and delete unchecked.
 
@@ -111,9 +153,9 @@ Add a before-query business rule on `sys_attachment`. Query checked. Insert, upd
 })(current, previous);
 ```
 
-A user with none of the roles in `roles_24810.txt` does not get rows for this order. A user with one of those roles, and admin, does.
+A user with `snc_external` does not get rows whose `u_document_status` is `internal`. A user with a role from `roles_24810.txt`, and admin, does.
 
-## 4. Upload and delete
+## 5. Upload and delete
 
 Delete has to work when the order is read-only. The out-of-box delete rule follows write access on the order.
 
@@ -135,24 +177,25 @@ That allow rule grants create or delete only to the three manage roles, and only
 
 `order_viewer`, `order_approver`, `order_fulfilment_agent`, `fulfillment_viewer`, `fulfillment_writer`, `service_order_agent`, `service_order_manager`, `order_creator`, `order_integrator`, and both internal-contact roles can preview and download. They cannot upload or delete.
 
-## 5. Test
+## 6. Test
 
-1. As `sn_ind_tmt_orm.order_agent`, upload a PNG and a PDF from the paperclip. Preview the PNG. Download the PDF. Both rows show on the Attachments tab. Delete the PNG.
+1. As `sn_ind_tmt_orm.order_agent`, upload a PNG and a PDF from the paperclip. Preview the PNG. Download the PDF. Both rows show on the Attachments tab with Document Status internal. Delete the PNG.
 2. Repeat upload and delete as `sn_ind_tmt_orm.order_admin` and as `sn_ind_tmt_orm.order_fulfilment_manager`.
 3. As `sn_ind_tmt_orm.order_viewer`, preview and download the PDF. Upload and delete are unavailable.
 4. As a user who has `snc_external` and none of the roles in `roles_24810.txt`, open the order in the portal. The file is absent.
 5. As that user, open `/sys_attachment.do?sys_id=<pdf sys_id>` and `/api/now/attachment/<pdf sys_id>/file`. Both are denied.
-6. As that user, open an attachment on another table. It still opens when that user could open it before.
+6. As that user, open an attachment on another table whose status is `external`. It still opens when that user could open it before.
 
-## 6. Close the story when all of these are true
+## 7. Close the story when all of these are true
 
 - `order_agent`, `order_admin`, and `order_fulfilment_manager` can upload, preview, download, and delete.
 - The other roles in `roles_24810.txt` can preview and download.
-- `snc_external` does not see the order file and cannot open it by URL.
+- A file uploaded on the order has `u_document_status` = `internal`.
+- `snc_external` does not see a file with status `internal` and cannot open it by URL.
 
 ## Fallback when snc_external can still download the file
 
-The download processor calls `AttachmentSecurity.canRead`. If step 5.5 still returns the file, duplicate that include as `CustomAttachmentSecurity` and add this at the top of `canRead`:
+The download processor calls `AttachmentSecurity.canRead`. If step 6.5 still returns the file, duplicate that include as `CustomAttachmentSecurity` and add this at the top of `canRead`:
 
 ```javascript
 if (!new OrderAttachmentAccess().canRead(current))
