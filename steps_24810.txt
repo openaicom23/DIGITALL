@@ -159,25 +159,96 @@ A user with `snc_external` does not get rows whose `u_document_status` is `inter
 
 ## 5. Upload and delete
 
-Delete has to work when the order is read-only. The out-of-box delete rule follows write access on the order.
+Stay in Global with `security_admin` elevated. Create four separate `sys_security_acl` records. Leave **Requires role** empty on all four. Roles placed there are required together. The script checks the three manager roles one by one.
 
-Create four rules on `sys_attachment`. Leave **Requires role** empty on all of them. Several roles in that field are required together, and these checks are any-of.
+Upload and delete stay with `sn_ind_tmt_orm.order_admin`, `sn_ind_tmt_orm.order_agent`, and `sn_ind_tmt_orm.order_fulfilment_manager`. The other roles in `roles_24810.txt` preview and download.
 
-**Delete, Deny unless** and **Create, Deny unless:**
+### 5.1 Delete, Deny unless
+
+1. Open `sys_security_acl.list` and click New.
+2. Fill in:
+
+- Type: record
+- Operation: delete
+- Name: `sys_attachment`
+- Decision type: Deny unless
+- Admin overrides: checked
+- Requires role: empty
+- Advanced: checked
+- Description: `Order attachment delete deny unless`
+
+3. Script:
 
 ```javascript
 answer = new OrderAttachmentAccess().canManage(current);
 ```
 
-**Delete, Allow if** and **Create, Allow if.** Condition empty.
+4. Submit.
+
+This blocks delete when the file is on `sn_ind_tmt_orm_order` and the user has none of the three roles. A file on another table is not blocked here.
+
+### 5.2 Create, Deny unless
+
+1. `sys_security_acl.list`, New.
+2. Same fields as 5.1, with two changes:
+
+- Operation: create
+- Description: `Order attachment create deny unless`
+
+3. Same script:
+
+```javascript
+answer = new OrderAttachmentAccess().canManage(current);
+```
+
+4. Submit.
+
+This blocks upload onto the order for a user who has none of the three roles.
+
+### 5.3 Delete, Allow if
+
+1. `sys_security_acl.list`, New.
+2. Fill in:
+
+- Type: record
+- Operation: delete
+- Name: `sys_attachment`
+- Decision type: Allow if
+- Admin overrides: checked
+- Requires role: empty
+- Advanced: checked
+- Condition: empty
+- Description: `Order attachment delete allow if`
+
+3. Script:
 
 ```javascript
 answer = new OrderAttachmentAccess().isManagerOnOrder(current);
 ```
 
-That allow rule grants create or delete only to the three manage roles, and only for a file on this order.
+4. Submit.
 
-`order_viewer`, `order_approver`, `order_fulfilment_agent`, `fulfillment_viewer`, `fulfillment_writer`, `service_order_agent`, `service_order_manager`, `order_creator`, `order_integrator`, and both internal-contact roles can preview and download. They cannot upload or delete.
+This grants delete only when the file is on `sn_ind_tmt_orm_order` and the user has one of the three roles. It still grants delete when the order itself is read-only. On a file from another table this rule grants nothing.
+
+### 5.4 Create, Allow if
+
+1. `sys_security_acl.list`, New.
+2. Same fields as 5.3, with two changes:
+
+- Operation: create
+- Description: `Order attachment create allow if`
+
+3. Same script:
+
+```javascript
+answer = new OrderAttachmentAccess().isManagerOnOrder(current);
+```
+
+4. Submit.
+
+This grants upload onto the order for the same three roles.
+
+Filter `sys_security_acl.list` by Name is `sys_attachment`. The four new rows are there, next to the read rule from step 3.
 
 ## 6. Test
 

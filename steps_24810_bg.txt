@@ -195,25 +195,97 @@ answer = new OrderAttachmentAccess().canRead(current);
 
 ## Стъпка 5. Качване и изтриване
 
-Изтриването трябва да работи и когато поръчката е само за четене. Старото delete правило гледа дали потребителят пише по поръчката.
+Остани в Global и с вдигната роля `security_admin`. Правят се четири отделни записа в `sys_security_acl`. Requires role на четирите е празно. Ако там се сложат трите роли, ServiceNow иска потребителят да ги има всичките наведнъж. Кой от трите мениджъра минава се решава в скрипта.
 
-Четири правила на `sys_attachment`. Requires role на всичките е празно. Ролите се решават в скрипта, защото няколко роли в Requires role се искат едновременно.
+Качват и трият само `sn_ind_tmt_orm.order_admin`, `sn_ind_tmt_orm.order_agent` и `sn_ind_tmt_orm.order_fulfilment_manager`. Останалите роли от `roles_24810.txt` преглеждат и теглят.
 
-**Delete, Deny unless** и **Create, Deny unless.** Един и същ скрипт:
+### 5.1 Delete, Deny unless
+
+1. Напиши `sys_security_acl.list` и натисни Enter.
+2. Натисни New.
+3. Попълни:
+
+- Type: record
+- Operation: delete
+- Name: `sys_attachment`
+- Decision type: Deny unless
+- Admin overrides: включено
+- Requires role: празно
+- Advanced: включено
+- Description: `Order attachment delete deny unless`
+
+4. В Script постави:
 
 ```javascript
 answer = new OrderAttachmentAccess().canManage(current);
 ```
 
-**Delete, Allow if** и **Create, Allow if.** Operation съответно delete и create. Decision type: Allow if. Condition празно. Скрипт:
+5. Натисни Submit.
+
+Това правило спира триенето, когато файлът е на `sn_ind_tmt_orm_order` и потребителят няма нито една от трите роли. Файл на друга таблица не се спира оттук.
+
+### 5.2 Create, Deny unless
+
+1. Отново `sys_security_acl.list`, New.
+2. Попълни същите полета като в 5.1, със тези две разлики:
+
+- Operation: create
+- Description: `Order attachment create deny unless`
+
+3. В Script постави същия ред:
+
+```javascript
+answer = new OrderAttachmentAccess().canManage(current);
+```
+
+4. Натисни Submit.
+
+Това спира качването на файл към поръчката за всеки, който няма нито една от трите роли.
+
+### 5.3 Delete, Allow if
+
+1. Отново `sys_security_acl.list`, New.
+2. Попълни:
+
+- Type: record
+- Operation: delete
+- Name: `sys_attachment`
+- Decision type: Allow if
+- Admin overrides: включено
+- Requires role: празно
+- Advanced: включено
+- Condition: празно
+- Description: `Order attachment delete allow if`
+
+3. В Script постави:
 
 ```javascript
 answer = new OrderAttachmentAccess().isManagerOnOrder(current);
 ```
 
-Това Allow if дава право само на мениджърските роли и само за файл на поръчката. На други таблици не добавя нищо.
+4. Натисни Submit.
 
-`order_viewer`, `order_approver`, `order_fulfilment_agent`, `fulfillment_viewer`, `fulfillment_writer`, `service_order_agent`, `service_order_manager`, `order_creator`, `order_integrator` и двете internal contact роли преглеждат и теглят. Не качват и не трият.
+Това дава триене само когато файлът е на `sn_ind_tmt_orm_order` и потребителят има поне една от трите роли. Работи и когато поръчката е само за четене. На файл от друга таблица това правило не дава право.
+
+### 5.4 Create, Allow if
+
+1. Отново `sys_security_acl.list`, New.
+2. Попълни същите полета като в 5.3, със тези две разлики:
+
+- Operation: create
+- Description: `Order attachment create allow if`
+
+3. В Script постави същия ред:
+
+```javascript
+answer = new OrderAttachmentAccess().isManagerOnOrder(current);
+```
+
+4. Натисни Submit.
+
+Това дава качване към поръчката на същите три роли.
+
+След четирите Submit в `sys_security_acl.list` филтрирай Name is `sys_attachment`. Трябва да виждаш новите четири реда: delete Deny unless, create Deny unless, delete Allow if, create Allow if. До тях остава read правилото от стъпка 3.
 
 ## Стъпка 6. Провери
 
