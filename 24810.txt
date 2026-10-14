@@ -1,0 +1,36 @@
+Anhänge hochladen // Upload attachments
+
+Als Ordermanager möchte ich bei Bedarf Anhänge für eine Order hochladen und der Order anhängen können, um relevante Dokumentationen und Dateien direkt der Order zugewiesen zu haben.
+
+As an order manager, I want to be able to upload attachments for an order if needed and attach them to the order, in order to have relevant documentation and files assigned directly to the order.
+
+Als Ordermanager möchte ich bei Bedarf Anhänge für eine Order hochladen und der Order anhängen können, um relevante Dokumentationen und Dateien direkt der Order zugewiesen zu haben.
+
+Anhänge die nicht mehr benötigt werden, sollen zudem auch jederzeit vom Ordermanager gelöscht werden können.
+
+Die Anhänge an der Order können jederzeit von FI-TS-Mitarbeitenden heruntergeladen und geöffnet werden.
+
+Die Anhänge sollen nur FI-TS-intern sichtbar sein, nicht für den Kunden.
+
+
+
+---------------------------------
+
+As an order manager, I want to be able to upload attachments for an order if needed and attach them to the order, in order to have relevant documentation and files assigned directly to the order.
+Attachments that are no longer needed should also be able to be deleted by the order manager at any time.
+The attachments on the order can be downloaded and opened by FI-TS employees at any time.
+The attachments should only be visible internally to FI-TS, not to the customer.
+
+make sure that the attachments have a flag to make it not visisble to the customer in the portal.
+
+Verify delete, attach and preview functionality.
+
+Der Ordermanager kann bei Bedarf Anhänge an die Order hochladen
+Anhänge können gelöscht oder heruntergeladen und geöffnet werden
+Anhänge sind nur FI-TS-intern sichtbar, nicht für den Kunden
+
+------------------------------
+
+The order manager can upload attachments to the order if needed
+Attachments can be deleted or downloaded and opened
+Attachments are only visible internally to FI-TS, not to the customer
