@@ -1,78 +1,24 @@
-Internal attachments on the order. Story: `24810.txt`.
+Order attachments stay inside FI-TS. Story: `24810.txt`.
 
-The order manager uploads files on the order, can delete them at any time, and can preview and download them. Any FI-TS employee who can open the order can preview and download them. The customer does not see them in the portal, and cannot open them by URL.
+The order manager uploads, previews, downloads, and deletes files on the order. An FI-TS employee who can open the order previews and downloads them. A user with `snc_external` does not see the files on that order and cannot open them by URL.
 
-ServiceNow stores these files in `sys_attachment`. A new read ACL next to the existing one does not hide them: the out-of-box read rule still grants access when the user can read the order. The flag has to be enforced by a Deny unless rule, and portal lists have to be filtered with a before-query rule, because a portal widget that uses `GlideRecord` does not apply access controls.
+There is no new field on `sys_attachment`. A file is hidden because `table_name` is the order table and the user has `snc_external`.
 
-## 1. Write down the table and the two kinds of user
+The center Attachments tab only lists rows. Upload, preview, download, and delete are the paperclip on the right-hand rail of CSM/FSM Configurable Workspace. Both write to `sys_attachment`.
 
-Open an order in CSM/FSM Configurable Workspace. The table name is the segment after `/record/` in the address, before the sys_id. Example: `/now/cwf/agent/record/sn_ind_tmt_orm_order/<sys_id>` means the table is `sn_ind_tmt_orm_order`.
+A second read ACL next to the existing one does not hide the file: the out-of-box rule still grants access when the user can read the order. Hiding is a Deny unless rule, plus a before-query rule, because a portal widget that uses `GlideRecord` does not apply access controls.
 
-On a customer user and on an FI-TS user, note the roles.
+## 1. Write down the table and the order manager role
 
-| Who | What they do in this story | What to write down |
-|---|---|---|
-| Order manager | Upload, delete, preview, download | The order manager role |
-| FI-TS employee | Preview and download | No extra role is required when this person can already open the order |
-| Customer | Sees nothing | `snc_external`, or the portal customer role if it is different |
+Open an order. The table name is the segment after `/record/` in the address, before the sys_id.
 
-Use those three names in every script below. The samples use `u_order`, `order_manager_role`, and `snc_external`.
+The order table in the scripts is `sn_ind_tmt_orm_order`. Replace `order_manager_role` with the real order manager role. Leave `snc_external` as written.
 
-The center Attachments tab is a related list. It lists rows and has no upload button. Leave New off on that list. New creates an empty `sys_attachment` row and does not pick a file. Upload is the paperclip on the right-hand icon rail, in step 7.
+If `u_internal` was already added, delete that dictionary entry and any business rule that sets it.
 
-## 2. Add the flag on sys_attachment
+## 2. Hide order files from snc_external
 
-Create this in the Global scope. `sys_attachment` is a global table.
-
-System Definition > Dictionary, or `sys_dictionary.list`, New:
-
-- **Table:** `sys_attachment`
-- **Type:** True/False
-- **Column label:** FI-TS intern
-- **Column name:** `u_internal`
-- **Default value:** `true`
-
-`true` means the file is hidden from the customer. Write down the column name ServiceNow saved. A scoped application prefixes it, and every script below has to use that saved name.
-
-Show the flag on the order. Configure the form, add the **Attachments** related list, and put these columns on that list: File name, Content type, Size bytes, FI-TS intern, Created by.
-
-## 3. Set the flag on every order attachment
-
-System Definition > Business Rules, or `sys_script.list`. Create one rule on `sys_attachment`.
-
-- **When:** before
-- **Insert:** checked
-- **Update:** checked
-- **Advanced:** checked
-- **Filter:** Table name is the order table (`table_name` is `u_order`)
-
-```javascript
-(function executeRule(current, previous) {
-    current.u_internal = true;
-})(current, previous);
-```
-
-The order manager does not tick the flag. An update that clears it is set back to true.
-
-Files already sitting on orders were created before the rule. Run this once in System Definition > Scripts - Background as admin. Replace the table name.
-
-```javascript
-var gr = new GlideRecord('sys_attachment');
-gr.addQuery('table_name', 'u_order');
-var qc = gr.addNullQuery('u_internal');
-qc.addOrCondition('u_internal', false);
-gr.query();
-while (gr.next()) {
-    gr.u_internal = true;
-    gr.setWorkflow(false);
-    gr.autoSysFields(false);
-    gr.update();
-}
-```
-
-## 4. Hide flagged order files from the customer
-
-Elevate to `security_admin` before creating access controls. System Security > Access Control, or `sys_security_acl.list`.
+Elevate to `security_admin`. System Security > Access Control, or `sys_security_acl.list`.
 
 Create a **read** rule on `sys_attachment`:
 
@@ -83,45 +29,20 @@ Create a **read** rule on `sys_attachment`:
 - **Requires role:** empty
 - **Advanced:** checked
 
-A role on this rule would deny every user who does not have that role, including FI-TS employees opening attachments on other tables. The script limits itself to the order table.
-
 ```javascript
-var orderTable = 'u_order';
-var customerRole = 'snc_external';
+var orderTable = 'sn_ind_tmt_orm_order';
 
-function isInternal(att) {
-    var v = att.getValue('u_internal');
-    return v == '1' || v == 'true';
-}
-
-if (current.getValue('table_name') != orderTable) {
-    answer = true;
-} else if (!isInternal(current)) {
-    answer = true;
-} else if (gs.hasRole(customerRole)) {
+if (current.getValue('table_name') == orderTable && gs.hasRole('snc_external'))
     answer = false;
-} else {
+else
     answer = true;
-}
 ```
 
-Deny unless is evaluated before the existing allow rules. `answer = false` blocks the customer even though the out-of-box rule would allow the file. `answer = true` leaves that out-of-box rule in place, so an internal user still has to be allowed to read the order.
+Deny unless is evaluated before the existing allow rules. `answer = false` denies the file, including a direct URL. `answer = true` leaves the existing read rule in place, so an FI-TS user without `snc_external` still needs to be allowed to read the order. A file on another table is outside this rule.
 
-If the customer has no `snc_external` role and has no role at all, `gs.hasRole` never matches. In that case replace the customer branch with the internal roles that may see the file:
+## 3. Hide the same files in portal lists
 
-```javascript
-} else if (gs.hasRole('order_manager_role') || gs.hasRole('itil')) {
-    answer = true;
-} else {
-    answer = false;
-}
-```
-
-Use the roles from step 1. Keep the same `orderTable` and `isInternal` checks above that branch.
-
-## 5. Hide the same files in portal lists
-
-Portal server scripts often use `GlideRecord`, which skips access controls. Add a second business rule on `sys_attachment`:
+Portal server scripts often use `GlideRecord`, which skips access controls. Add a business rule on `sys_attachment`:
 
 - **When:** before
 - **Query:** checked
@@ -132,22 +53,22 @@ Portal server scripts often use `GlideRecord`, which skips access controls. Add 
 ```javascript
 (function executeRule(current, previous) {
     if (gs.hasRole('snc_external'))
-        current.addQuery('u_internal', '!=', true);
+        current.addQuery('table_name', '!=', 'sn_ind_tmt_orm_order');
 })(current, previous);
 ```
 
-Use the customer role from step 1. Internal users get no extra query, so the paperclip, preview, and download stay available to them.
+A user with `snc_external` does not get rows for the order table. An internal user gets no extra filter.
 
-## 6. Upload and delete for the order manager
+## 4. Upload and delete for the order manager
 
-Delete has to work in every order status, including when the order itself is read-only. The out-of-box delete rule follows write access on the order, so a Deny unless rule alone is not enough: the order manager still needs one allow rule.
+Delete has to work when the order itself is read-only. The out-of-box delete rule follows write access on the order, so the order manager also needs an allow rule.
 
 Create these four rules on `sys_attachment`. Leave **Requires role** empty on both Deny unless rules.
 
 **Delete, Deny unless:**
 
 ```javascript
-var orderTable = 'u_order';
+var orderTable = 'sn_ind_tmt_orm_order';
 var managerRole = 'order_manager_role';
 
 if (current.getValue('table_name') != orderTable)
@@ -159,81 +80,45 @@ else
 **Delete, Allow if:**
 
 - **Requires role:** the order manager role
-- **Condition:** Table name is the order table
+- **Condition:** Table name is `sn_ind_tmt_orm_order`
 - **Script:** `answer = true;`
 
 **Create, Deny unless:** the same script as delete.
 
 **Create, Allow if:** the same role and condition as the delete allow rule.
 
-FI-TS employees who are not order managers still pass the read rule from step 4, so preview and download stay. They fail the delete Deny unless rule.
+An FI-TS employee who is not an order manager still passes the read rule, so preview and download stay. Delete does not. `snc_external` cannot upload a file onto the order.
 
-## 7. Preview, download, and the portal
+## 5. Test
 
-The order opens in CSM/FSM Configurable Workspace. Upload is not on the center Attachments tab.
+Use a PNG and a PDF. Impersonate each user.
 
-1. Open the order.
-2. On the narrow vertical rail to the right of Activity, click the paperclip.
-3. The panel has **Add file**. That uploads onto this order.
-4. The card menu on a file previews, downloads, and deletes it.
-5. Refresh the center Attachments tab. The new row is there, and FI-TS intern is true.
+1. As the order manager, open the paperclip on the right-hand rail and upload both files with Add file.
+2. Preview the PNG. Download the PDF and open it.
+3. Refresh the Attachments tab. Both rows are there.
+4. Delete the PNG. It disappears from the panel and from the tab. The old preview URL no longer opens it.
+5. Save the order and change its status. The PDF remains one row.
+6. As an FI-TS employee who is not an order manager and who can open the order, preview and download the PDF. Delete is unavailable.
+7. As a user with `snc_external`, open the same order in the portal. The file is not in the list and not in the activity.
+8. As that user, open `/sys_attachment.do?sys_id=<pdf sys_id>` and `/api/now/attachment/<pdf sys_id>/file`. Both are denied.
+9. As that user, open an attachment on another table. It still opens when that user could open it before.
 
-Both the panel and the related list read `sys_attachment`, so the flag and the access rules apply to either place.
+## 6. Close the story when all of these are true
 
-If the rail has no paperclip, add the component:
-
-1. Now Experience Framework > UI Builder.
-2. Open the **CSM/FSM Configurable Workspace** experience. Its path contains `/cwf`.
-3. Open the **Record** page variant this order actually uses. The variant condition matches the table from step 1.
-4. In the content tree, open **Tab sidebar**.
-5. Next to Tabs, click **+ Add** and start from an empty container.
-6. Label: `Attachments`. Icon: paperclip.
-7. On that tab, **Add content**, search `Attachments`, and select `now-record-common-attachments-connected`. Take the preset for the current record when it is offered.
-8. Bind Table and Sys ID to the page parameters `table` and `sysId`. Those are the two values after `/record/` in the order URL.
-9. Use the full component, so the panel has search, preview, download, and delete.
-10. Save and reload the order. The paperclip is on the right-hand rail.
-
-The portal order page has nothing new to build when steps 4 and 5 are in place. The customer attachment list and the activity stream read `sys_attachment`. Flagged rows are filtered out, and a direct file URL is denied.
-
-If a portal widget still shows the file name after step 8, that widget keeps its own list. Open the widget and query with `GlideRecordSecure`, or add:
-
-```javascript
-gr.addQuery('u_internal', '!=', true);
-```
-
-## 8. Test
-
-Use a PNG and a PDF. Impersonate each user. Elevate back to admin between checks on `sys_attachment`.
-
-1. As the order manager, click the paperclip on the right-hand rail and upload both files with Add file.
-2. On the Attachments related list, FI-TS intern is true on both rows.
-3. Preview the PNG. Download the PDF and open it. Both succeed.
-4. Delete the PNG. The row is gone from the related list and from `sys_attachment.list`. The old preview URL no longer opens the file.
-5. Save the order, and change its status, without uploading again. The PDF remains, and no second copy appears.
-6. As an FI-TS employee who is not an order manager and who can open that order, preview and download the PDF. Delete is unavailable.
-7. As the customer, open the same order in the portal. The file is not in the attachment list and not in the activity text.
-8. As the customer, open `/sys_attachment.do?sys_id=<pdf sys_id>` and `/api/now/attachment/<pdf sys_id>/file`. Both are denied.
-9. As an internal user, open an attachment on a different table, such as an incident. It still opens. The new rules only restrict the order table.
-
-## 9. Close the story when all of these are true
-
-- The order manager can upload an attachment on the order.
-- The order manager can preview, download, and delete it, and delete still works after the order is read-only.
+- The order manager can upload an attachment, and it shows on the Attachments tab.
+- The order manager can preview, download, and delete it, including when the order is read-only.
 - An FI-TS employee who can open the order can preview and download it.
-- The attachment has FI-TS intern set to true.
-- The customer does not see the file in the portal and cannot open it by URL.
+- A user with `snc_external` does not see the order file and cannot open it by URL.
 
-## Fallback when the customer can still download the file
+## Fallback when snc_external can still download the file
 
-The attachment popup and the download processor call the script include `AttachmentSecurity`, method `canRead`. If the customer download in step 8 still returns the file, that method is granting access on its own.
+The download processor calls `AttachmentSecurity.canRead`. If step 5.8 still returns the file, that method is granting access on its own.
 
-`AttachmentSecurity` is often read-only. Duplicate the script include, set the new name and the `type` property to `CustomAttachmentSecurity`, and keep the copied logic. At the top of `canRead`, before the copied logic, add:
+`AttachmentSecurity` is often read-only. Duplicate it, set the name and `type` to `CustomAttachmentSecurity`, and keep the copied logic. At the top of `canRead` add:
 
 ```javascript
-var v = current.getValue('u_internal');
-var isInternal = v == '1' || v == 'true';
-if (current.getValue('table_name') == 'u_order' && isInternal && gs.hasRole('snc_external'))
+if (current.getValue('table_name') == 'sn_ind_tmt_orm_order' && gs.hasRole('snc_external'))
     return false;
 ```
 
-Find the existing read ACL whose script calls `AttachmentSecurity` and point it at `CustomAttachmentSecurity`. Leave that ACL active for every other table: the new lines return false only for a flagged attachment on the order when the user is the customer.
+Point the existing read ACL that calls `AttachmentSecurity` at `CustomAttachmentSecurity`.

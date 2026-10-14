@@ -1,96 +1,28 @@
 Как се изпълнява история 24810
 
-Поръчката се отваря в CSM/FSM Configurable Workspace. Кламерът в дясната лента качва, преглежда, тегли и трие. Табът Attachments в средата е списъкът на същите файлове.
+Поръчката се отваря в CSM/FSM Configurable Workspace. Кламерът в дясната лента качва, преглежда, тегли и трие. Табът Attachments в средата показва същите файлове. И двете места пишат в `sys_attachment`.
+
+Ново поле на `sys_attachment` не се прави. `snc_external` не вижда файловете, чиято таблица е таблицата на поръчката. Кой файл е скрит се познава по `table_name`, не по флаг.
 
 ## Какво иска заданието
 
 1. Мениджърът на поръчката качва файл към поръчката, когато му трябва.
 2. Мениджърът може да изтрие файла по всяко време.
 3. Служител на FI-TS може по всяко време да отвори и да изтегли файла.
-4. Клиентът не вижда файла в портала и не може да го отвори по адрес.
-5. На всеки файл има флаг, който го прави невидим за клиента.
-6. Проверени са качване, преглед и изтриване.
+4. `snc_external` не вижда файла в портала и не го отваря по адрес.
+5. Проверени са качване, преглед и изтриване.
 
-## Какво вече е на екрана
-
-Кламерът вдясно прави качване, преглед, изтегляне и изтриване. Табът Attachments показва качените файлове. И двете места пишат в `sys_attachment`.
-
-Остава флагът и забраната за клиента. Без тях клиент, който чете поръчката, вижда и файла.
-
-## Стъпка 1. Запиши таблицата и ролите
+## Стъпка 1. Запиши таблицата и ролята на мениджъра
 
 1. Отвори поръчка в workspace.
 2. В адреса след `/record/` е таблицата, после sys_id. Запиши таблицата.
-3. Запиши ролята на мениджъра на поръчката и ролята на клиента в портала. Често клиентската е `snc_external`.
+3. Запиши ролята на мениджъра на поръчката.
 
-В скриптовете долу са `u_order`, `order_manager_role` и `snc_external`. Смени ги с твоите.
+Таблицата в скриптовете е `sn_ind_tmt_orm_order`. Ролята на мениджъра е написана като `order_manager_role`. Смени само нея със записаната. `snc_external` остава както е написано.
 
-## Стъпка 2. Създай флага
+Ако вече има поле `u_internal` и business rule, което го пълни, изтрий полето и това правило. Те не влизат в решението.
 
-Работи в Global. `sys_attachment` е глобална таблица.
-
-1. Напиши `sys_dictionary.list` и натисни Enter.
-2. New.
-3. Попълни:
-
-- Table: `sys_attachment`
-- Type: True/False
-- Column label: `FI-TS intern`
-- Column name: `u_internal`
-- Default value: `true`
-
-4. Submit.
-
-`true` означава, че файлът е само за FI-TS. Ако Column name се запише с префикс, ползвай записаното име навсякъде надолу.
-
-Сложи колоната на списъка, който вече виждаш:
-
-1. Отвори поръчката и таб Attachments.
-2. С десен бутон върху заглавие на колона избери Configure > List Layout. Ако менюто липсва, отвори `sys_ui_list.list`, намери изгледа на `sys_attachment` за тази related list и добави колоната там.
-3. Добави `FI-TS intern` до File name.
-
-## Стъпка 3. Флагът се слага сам при качване
-
-1. `sys_script.list`, New.
-2. Попълни:
-
-- Name: `Order attachment is FI-TS intern`
-- Table: `sys_attachment`
-- Advanced: включено
-- When: before
-- Insert: включено
-- Update: включено
-- Filter: Table name is таблицата от стъпка 1
-
-3. Скрипт:
-
-```javascript
-(function executeRule(current, previous) {
-    current.u_internal = true;
-})(current, previous);
-```
-
-4. Submit.
-
-За файлове, качени преди правилото, пусни веднъж Scripts - Background:
-
-```javascript
-var gr = new GlideRecord('sys_attachment');
-gr.addQuery('table_name', 'u_order');
-var qc = gr.addNullQuery('u_internal');
-qc.addOrCondition('u_internal', false);
-gr.query();
-while (gr.next()) {
-    gr.u_internal = true;
-    gr.setWorkflow(false);
-    gr.autoSysFields(false);
-    gr.update();
-}
-```
-
-Смени `u_order` с таблицата от стъпка 1.
-
-## Стъпка 4. Скрий файла от клиента
+## Стъпка 2. Скрий файловете на поръчката от snc_external
 
 Преди правата: иконата на потребителя, Elevate Roles, `security_admin`.
 
@@ -107,52 +39,33 @@ while (gr.next()) {
 - Requires role: празно
 - Advanced: включено
 
+Роля в Requires role би спряла и служителите на FI-TS. Скриптът спира само `snc_external` и само за файлове на поръчката.
+
 3. Скрипт:
 
 ```javascript
-var orderTable = 'u_order';
-var customerRole = 'snc_external';
+var orderTable = 'sn_ind_tmt_orm_order';
 
-function isInternal(att) {
-    var v = att.getValue('u_internal');
-    return v == '1' || v == 'true';
-}
-
-if (current.getValue('table_name') != orderTable) {
-    answer = true;
-} else if (!isInternal(current)) {
-    answer = true;
-} else if (gs.hasRole(customerRole)) {
+if (current.getValue('table_name') == orderTable && gs.hasRole('snc_external'))
     answer = false;
-} else {
+else
     answer = true;
-}
 ```
 
 4. Submit.
 
-Ако клиентът няма роля, последният клон става така, с вътрешните роли от стъпка 1:
-
-```javascript
-} else if (gs.hasRole('order_manager_role') || gs.hasRole('itil')) {
-    answer = true;
-} else {
-    answer = false;
-}
-```
-
-`answer = false` спира клиента. `answer = true` оставя старото правило: служител на FI-TS вижда файла, когато вече може да отвори поръчката.
+`answer = false` отказва файла, включително по директен адрес. `answer = true` оставя старото read правило. Служител на FI-TS без `snc_external` вижда файла, ако може да отвори поръчката. Файл на друга таблица това правило не го пипа.
 
 Ако на формата няма Decision type, мини на последната секция.
 
-## Стъпка 5. Скрий файла и в списъка на портала
+## Стъпка 3. Скрий ги и в списъка на портала
 
 Виджет в портала често чете с `GlideRecord` и прескача правата.
 
 1. `sys_script.list`, New.
 2. Попълни:
 
-- Name: `Hide FI-TS intern attachments from customer`
+- Name: `Hide order attachments from snc_external`
 - Table: `sys_attachment`
 - Advanced: включено
 - When: before
@@ -163,14 +76,15 @@ if (current.getValue('table_name') != orderTable) {
 ```javascript
 (function executeRule(current, previous) {
     if (gs.hasRole('snc_external'))
-        current.addQuery('u_internal', '!=', true);
+        current.addQuery('table_name', '!=', 'sn_ind_tmt_orm_order');
 })(current, previous);
 ```
 
-3. Смени ролята с клиентската от стъпка 1.
-4. Submit.
+3. Submit.
 
-## Стъпка 6. Изтриване само за мениджъра на поръчката
+Потребител с `snc_external` не получава редовете на поръчката. Вътрешен потребител няма този филтър.
+
+## Стъпка 4. Изтриване само за мениджъра на поръчката
 
 Изтриването трябва да работи и когато поръчката е само за четене. Старото delete правило гледа дали потребителят пише по поръчката. Затова има Deny unless и едно Allow if.
 
@@ -179,7 +93,7 @@ if (current.getValue('table_name') != orderTable) {
 **Delete, Deny unless.** Operation: delete. Decision type: Deny unless.
 
 ```javascript
-var orderTable = 'u_order';
+var orderTable = 'sn_ind_tmt_orm_order';
 var managerRole = 'order_manager_role';
 
 if (current.getValue('table_name') != orderTable)
@@ -191,48 +105,45 @@ else
 **Delete, Allow if.** Operation: delete. Decision type: Allow if.
 
 - Requires role: ролята на мениджъра
-- Condition: Table name is таблицата от стъпка 1
+- Condition: Table name is `sn_ind_tmt_orm_order`
 - Script: `answer = true;`
 
 **Create, Deny unless.** Същият скрипт като при delete.
 
 **Create, Allow if.** Същата роля и същото условие като Allow if за delete.
 
-Служител на FI-TS, който не е мениджър, преглежда и тегли. Изтриването остава за мениджъра.
+Служител на FI-TS, който не е мениджър, преглежда и тегли. Изтриването остава за мениджъра. `snc_external` не качва файл на поръчката.
 
-## Стъпка 7. Провери качване, преглед и изтриване
+## Стъпка 5. Провери качване, преглед и изтриване
 
 Приготви един PNG и един PDF.
 
 1. Като мениджър отвори поръчка. Натисни кламера в дясната лента.
 2. С Add file качи двата файла.
-3. Отвори менюто на PNG и го прегледай. Изтегли PDF и го отвори.
-4. Опресни таб Attachments. И двата реда са там, FI-TS intern е true.
+3. Прегледай PNG от менюто на файла. Изтегли PDF и го отвори.
+4. Опресни таб Attachments. И двата реда са там.
 5. От кламера изтрий PNG. Редът изчезва от панела и от таба. Старият адрес за преглед не отваря файла.
 6. Запиши поръчката и смени статуса. PDF остава един.
 7. Като служител на FI-TS, който не е мениджър и може да отвори поръчката, прегледай и изтегли PDF. Изтриване няма.
-8. Като клиент отвори същата поръчка в портала. Файлът го няма в списъка и го няма в активността.
-9. Като клиент отвори `/sys_attachment.do?sys_id=<sys_id на pdf>` и `/api/now/attachment/<sys_id>/file`. И двата адреса се отказват.
-10. Като вътрешен потребител отвори прикачен файл на друга таблица. Той се отваря.
+8. Влез с потребител, който има `snc_external`. Отвори същата поръчка в портала. Файлът го няма в списъка и го няма в активността.
+9. Същият потребител отваря `/sys_attachment.do?sys_id=<sys_id на pdf>` и `/api/now/attachment/<sys_id>/file`. И двата адреса се отказват.
+10. Същият потребител отваря файл, закачен на друга таблица. Той се отваря, ако и досега е имал достъп до него.
 
 ## Историята е готова, когато
 
 - мениджърът качва файл от кламера и редът се вижда в таб Attachments
 - мениджърът преглежда, тегли и трие, включително при поръчка само за четене
 - служител на FI-TS преглежда и тегли
-- на файла FI-TS intern е true
-- клиентът не вижда файла в портала и не го отваря по адрес
+- потребител с `snc_external` не вижда файла на поръчката и не го отваря по адрес
 
-## Ако клиентът все пак сваля файла
+## Ако snc_external все пак сваля файла
 
-Свалянето вика script include `AttachmentSecurity`, метод `canRead`. Ако стъпка 7.9 върне файла, този метод го пуска отделно от правата.
+Свалянето вика script include `AttachmentSecurity`, метод `canRead`. Ако стъпка 5.9 върне файла, този метод го пуска отделно от правата.
 
 Include-ът често е Read-only. Дублирай го. Новото име и `type` са `CustomAttachmentSecurity`. Запази копираната логика. Най-отгоре в `canRead` сложи:
 
 ```javascript
-var v = current.getValue('u_internal');
-var isInternal = v == '1' || v == 'true';
-if (current.getValue('table_name') == 'u_order' && isInternal && gs.hasRole('snc_external'))
+if (current.getValue('table_name') == 'sn_ind_tmt_orm_order' && gs.hasRole('snc_external'))
     return false;
 ```
 
