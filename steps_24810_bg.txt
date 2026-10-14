@@ -83,7 +83,8 @@ OrderAttachmentAccess.prototype = {
         if (gs.hasRole('admin'))
             return;
         if (gs.hasRole('snc_external')) {
-            current.addQuery('u_document_status', '!=', 'internal');
+            var status = current.addNullQuery('u_document_status');
+            status.addOrCondition('u_document_status', 'external');
             return;
         }
         if (!this._hasAny(this.READ_ROLES))
@@ -169,19 +170,50 @@ answer = new OrderAttachmentAccess().canRead(current);
 
 Ако на формата няма Decision type, мини на последната секция.
 
-## Стъпка 4. Същият филтър в списъка на портала
+## Стъпка 4. Заявката на списъка Attachments в workspace
 
-Виджет в портала често чете с `GlideRecord` и прескача правата.
+Средният таб Attachments е related list. Неговата заявка е relationship към `sys_attachment`. В нея се добавя филтърът за `snc_external`. Редове с `u_document_status` = `internal` не влизат в резултата. Редове `external` и празен статус остават.
 
-1. `sys_script.list`, New.
+1. Напиши `sys_ui_related_list.list` и натисни Enter.
+2. Намери списъка за таблица `sn_ind_tmt_orm_order` и изгледа, който workspace ползва.
+3. Отвори related list записа Attachments. Стойността в Related list е `REL:` плюс sys_id.
+4. Отвори този запис в `sys_relationship`. Queries from table е `sys_attachment`.
+5. В скрипта на relationship остави редовете, които връзват файла към поръчката. Добави само блока за ролята:
+
+```javascript
+if (gs.hasRole('snc_external')) {
+    var status = current.addNullQuery('u_document_status');
+    status.addOrCondition('u_document_status', 'external');
+}
+```
+
+Целият скрипт, ако сега връзва само таблица и sys_id, става така:
+
+```javascript
+(function refineQuery(current, parent) {
+    current.addQuery('table_name', parent.getTableName());
+    current.addQuery('table_sys_id', parent.getUniqueValue());
+    if (gs.hasRole('snc_external')) {
+        var status = current.addNullQuery('u_document_status');
+        status.addOrCondition('u_document_status', 'external');
+    }
+})(current, parent);
+```
+
+6. Update.
+
+Същият филтър стои и в query business rule, за да важи и извън този related list. Ако правилото от долния скрипт вече е създадено, смени метода `hideFromQuery` в Script Include с версията от стъпка 1 и обнови правилото.
+
+1. `sys_script.list`, New, ако правилото го няма.
 2. Попълни:
 
-- Name: `Hide order attachments from users outside ORM roles`
+- Name: `Hide internal attachments from snc_external`
 - Table: `sys_attachment`
 - Advanced: включено
 - When: before
 - Query: включено
 - Insert, Update, Delete: изключени
+- Application: Global
 
 ```javascript
 (function executeRule(current, previous) {
@@ -191,7 +223,7 @@ answer = new OrderAttachmentAccess().canRead(current);
 
 3. Submit.
 
-Потребител с `snc_external` не получава редове с `u_document_status` = `internal`. Потребител с роля от `roles_24810.txt`, и admin, ги получават.
+Потребител с `snc_external` в таб Attachments не вижда редове internal. Потребител с роля от `roles_24810.txt` ги вижда.
 
 ## Стъпка 5. Качване и изтриване
 
@@ -285,7 +317,101 @@ answer = new OrderAttachmentAccess().isManagerOnOrder(current);
 
 Това дава качване към поръчката на същите три роли.
 
-След четирите Submit в `sys_security_acl.list` филтрирай Name is `sys_attachment`. Трябва да виждаш новите четири реда: delete Deny unless, create Deny unless, delete Allow if, create Allow if. До тях остава read правилото от стъпка 3.
+### 5.5 Write, Deny unless
+
+Rename в менюто на файла е write върху `sys_attachment`. Без това правило менюто показва Rename на всеки, който пише по поръчката.
+
+1. `sys_security_acl.list`, New.
+2. Попълни същите полета като в 5.1, със тези две разлики:
+
+- Operation: write
+- Description: `Order attachment write deny unless`
+
+3. В Script постави:
+
+```javascript
+answer = new OrderAttachmentAccess().canManage(current);
+```
+
+4. Натисни Submit.
+
+### 5.6 Write, Allow if
+
+1. `sys_security_acl.list`, New.
+2. Попълни същите полета като в 5.3, със тези две разлики:
+
+- Operation: write
+- Description: `Order attachment write allow if`
+
+3. В Script постави:
+
+```javascript
+answer = new OrderAttachmentAccess().isManagerOnOrder(current);
+```
+
+4. Натисни Submit.
+
+### Менюто на файла в десния панел
+
+Трите реда в жълтото меню са трите операции:
+
+- Download е read. Вижда го всяка роля от `roles_24810.txt`.
+- Delete е delete. Виждат го само `order_admin`, `order_agent` и `order_fulfilment_manager`.
+- Rename е write. Виждат го същите три роли.
+
+`order_viewer` и останалите роли без тези три виждат само Download. `snc_external` не вижда самия файл, когато статусът е `internal`, и менюто не се отваря.
+
+Провери с Impersonate на `sn_ind_tmt_orm.order_viewer`: менюто на `test1.txt` има само Download. С `order_agent` има Download, Delete и Rename.
+
+Ако при `order_viewer` Delete или Rename още стоят, панелът не чете правата, а `AttachmentSecurity`. Дублирай include-а като `CustomAttachmentSecurity` и в `canDelete` и `canWrite`, преди копираната логика, сложи:
+
+```javascript
+if (!new OrderAttachmentAccess().canManage(current))
+    return false;
+```
+
+В `canRead` сложи:
+
+```javascript
+if (!new OrderAttachmentAccess().canRead(current))
+    return false;
+```
+
+Насочи read, write и delete правилата, които викат `AttachmentSecurity`, към `CustomAttachmentSecurity`.
+
+След шестте Submit в `sys_security_acl.list` филтрирай Name is `sys_attachment`. Новите редове са create, delete и write, всеки с Deny unless и Allow if. До тях остава read правилото от стъпка 3.
+
+## Стъпка 5а. След качване списъкът се обновява сам
+
+Жълтият бутон над таб Attachments е Refresh на related list-а. Десният панел и този списък са два отделни компонента и качването от `+` не натиска Refresh. Връзваш събитието от панела към същото обновяване.
+
+1. Now Experience Framework > UI Builder.
+2. Experience **CSM/FSM Configurable Workspace**, страница **Record**, вариантът на `sn_ind_tmt_orm_order`.
+3. В дървото отляво отвори компонента на десния панел Attachments. Това е панелът с `+`.
+4. Вдясно отвори Events.
+5. Add event mapping за **Attachment upload succeeded**.
+6. За target избери списъка Attachments в средата на страницата, действието **Refresh**. Това е същото действие като жълтия бутон. Save.
+
+Повтори mapping-а и за **Attachment delete succeeded** към същия Refresh. Иначе след изтриване от панела редът остава в средния списък, докато някой не натисне жълтия бутон.
+
+Ако в target няма средния списък, панелът е в отделна подстраница и събитието не стига до него. Тогава:
+
+1. На страницата Record създай Client script с име `Refresh order attachments list`.
+2. Скрипт:
+
+```javascript
+function handler({api}) {
+    api.emit('RECORD#RELATED_LIST_REFRESH_REQUESTED', {
+        relatedListName: 'REL:PASTE_THE_RELATED_LIST_VALUE'
+    });
+}
+```
+
+3. Стойността на `relatedListName` я копираш от конфигурацията на средния Attachments списък в UI Builder. Полето е related list. За relationship изглежда като `REL:` и sys_id. Не пиши етикета Attachments.
+4. Ако страницата има Dispatched events и там няма **Related list refresh requested**, добави го. Иначе `api.emit` се игнорира.
+5. На десния Attachments компонент вържи **Attachment upload succeeded** и **Attachment delete succeeded** към този client script.
+
+Проверка: качи файл от `+`. Средният таб показва новия ред с Document Status internal, без натискане на жълтия бутон. Изтрий го от панела. Редът изчезва и от таба.
 
 ## Стъпка 6. Провери
 
@@ -296,7 +422,7 @@ answer = new OrderAttachmentAccess().isManagerOnOrder(current);
 3. В таб Attachments и двата реда са там, Document Status е internal.
 4. Изтрий PNG. Редът изчезва от панела и от таба.
 5. Същото качване и изтриване минава с `sn_ind_tmt_orm.order_admin` и с `sn_ind_tmt_orm.order_fulfilment_manager`.
-6. С `sn_ind_tmt_orm.order_viewer` прегледай и изтегли PDF. Качване и изтриване няма.
+6. С `sn_ind_tmt_orm.order_viewer` прегледай и изтегли PDF. В менюто на файла има само Download. Delete и Rename ги няма.
 7. С потребител, който има `snc_external` и няма роля от `roles_24810.txt`, отвори поръчката в портала. Файлът го няма.
 8. Същият потребител отваря `/sys_attachment.do?sys_id=<sys_id на pdf>` и `/api/now/attachment/<sys_id>/file`. И двата адреса се отказват.
 9. Същият потребител отваря файл на друга таблица със статус `external`. Той се отваря, ако и досега е имал достъп до него. Файл със статус `internal` остава скрит.

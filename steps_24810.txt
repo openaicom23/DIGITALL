@@ -80,7 +80,8 @@ OrderAttachmentAccess.prototype = {
         if (gs.hasRole('admin'))
             return;
         if (gs.hasRole('snc_external')) {
-            current.addQuery('u_document_status', '!=', 'internal');
+            var status = current.addNullQuery('u_document_status');
+            status.addOrCondition('u_document_status', 'external');
             return;
         }
         if (!this._hasAny(this.READ_ROLES))
@@ -145,9 +146,36 @@ answer = new OrderAttachmentAccess().canRead(current);
 
 A file with `u_document_status` = `internal` is denied for `snc_external`, including a direct URL. A file on `sn_ind_tmt_orm_order` passes only for a role in `READ_ROLES`. A file on another table with status `external` keeps its existing read rules.
 
-## 4. Portal list
+## 4. Workspace Attachments list query
 
-Add a before-query business rule on `sys_attachment`. Query checked. Insert, update, and delete unchecked.
+The center Attachments tab is a related list. Its query is the relationship on `sys_attachment`. Add the `snc_external` filter there. Rows with `u_document_status` = `internal` drop out of the result. Rows that are `external` or empty stay.
+
+1. Open `sys_ui_related_list.list` for `sn_ind_tmt_orm_order` and the view the workspace uses.
+2. Open the Attachments entry. Related list is `REL:` plus a sys_id.
+3. Open that `sys_relationship`. Queries from table is `sys_attachment`.
+4. Keep the lines that bind the file to the order. Add only the role block:
+
+```javascript
+if (gs.hasRole('snc_external')) {
+    var status = current.addNullQuery('u_document_status');
+    status.addOrCondition('u_document_status', 'external');
+}
+```
+
+If the script only binds table and sys_id, the whole script becomes:
+
+```javascript
+(function refineQuery(current, parent) {
+    current.addQuery('table_name', parent.getTableName());
+    current.addQuery('table_sys_id', parent.getUniqueValue());
+    if (gs.hasRole('snc_external')) {
+        var status = current.addNullQuery('u_document_status');
+        status.addOrCondition('u_document_status', 'external');
+    }
+})(current, parent);
+```
+
+The same filter is in the before-query business rule so it also applies outside this related list. If that rule already exists, update `hideFromQuery` in the script include to the version in step 1.
 
 ```javascript
 (function executeRule(current, previous) {
@@ -155,7 +183,7 @@ Add a before-query business rule on `sys_attachment`. Query checked. Insert, upd
 })(current, previous);
 ```
 
-A user with `snc_external` does not get rows whose `u_document_status` is `internal`. A user with a role from `roles_24810.txt`, and admin, does.
+A user with `snc_external` does not see internal rows on the Attachments tab. A user with a role from `roles_24810.txt` does.
 
 ## 5. Upload and delete
 
@@ -248,7 +276,91 @@ answer = new OrderAttachmentAccess().isManagerOnOrder(current);
 
 This grants upload onto the order for the same three roles.
 
-Filter `sys_security_acl.list` by Name is `sys_attachment`. The four new rows are there, next to the read rule from step 3.
+### 5.5 Write, Deny unless
+
+Rename in the file menu is write on `sys_attachment`. Without this rule the menu shows Rename to anyone who can write the order.
+
+1. `sys_security_acl.list`, New.
+2. Same fields as 5.1, with two changes:
+
+- Operation: write
+- Description: `Order attachment write deny unless`
+
+3. Script:
+
+```javascript
+answer = new OrderAttachmentAccess().canManage(current);
+```
+
+4. Submit.
+
+### 5.6 Write, Allow if
+
+1. `sys_security_acl.list`, New.
+2. Same fields as 5.3, with two changes:
+
+- Operation: write
+- Description: `Order attachment write allow if`
+
+3. Script:
+
+```javascript
+answer = new OrderAttachmentAccess().isManagerOnOrder(current);
+```
+
+4. Submit.
+
+### File menu in the right-hand panel
+
+The three rows in that menu are the three operations:
+
+- Download is read. Every role in `roles_24810.txt` sees it.
+- Delete is delete. Only `order_admin`, `order_agent`, and `order_fulfilment_manager` see it.
+- Rename is write. The same three roles see it.
+
+`order_viewer` and the other roles see Download only. `snc_external` does not see an `internal` file, so the menu does not open.
+
+Impersonate `sn_ind_tmt_orm.order_viewer`. The menu on the file contains only Download. As `order_agent` it contains Download, Delete, and Rename.
+
+If Delete or Rename is still there for `order_viewer`, the panel reads `AttachmentSecurity` instead of the access rules. Duplicate that include as `CustomAttachmentSecurity`. At the top of `canDelete` and `canWrite` add:
+
+```javascript
+if (!new OrderAttachmentAccess().canManage(current))
+    return false;
+```
+
+At the top of `canRead` add:
+
+```javascript
+if (!new OrderAttachmentAccess().canRead(current))
+    return false;
+```
+
+Point the read, write, and delete rules that call `AttachmentSecurity` at `CustomAttachmentSecurity`.
+
+Filter `sys_security_acl.list` by Name is `sys_attachment`. The new rows are create, delete, and write, each with Deny unless and Allow if, next to the read rule from step 3.
+
+## 5a. Refresh the center list after upload
+
+The yellow button above the center Attachments tab is the related list Refresh. The right-hand panel and that list are separate components, so `+` does not press Refresh.
+
+1. UI Builder, CSM/FSM Configurable Workspace, the Record variant for `sn_ind_tmt_orm_order`.
+2. Select the right-hand Attachments component, the one with `+`.
+3. Events, add a mapping for **Attachment upload succeeded**.
+4. Target the center Attachments list and its **Refresh** action. That is the yellow button. Save.
+5. Map **Attachment delete succeeded** to the same Refresh.
+
+If the center list is not in the target list, the panel is a separate subpage. Create a client script on the Record page:
+
+```javascript
+function handler({api}) {
+    api.emit('RECORD#RELATED_LIST_REFRESH_REQUESTED', {
+        relatedListName: 'REL:PASTE_THE_RELATED_LIST_VALUE'
+    });
+}
+```
+
+Copy `relatedListName` from the center list configuration. It is the related list value, not the label Attachments. Add **Related list refresh requested** to the page Dispatched events when that list does not already contain it. Map both attachment events to this script.
 
 ## 6. Test
 
