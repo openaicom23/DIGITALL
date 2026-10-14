@@ -187,9 +187,14 @@ Vorsitzender des Aufsichtsrates: Detlev Klage
 ## Стъпка 6. Провери, че писмото е в дейностите
 
 1. Опресни поръчката.
-2. В Activities трябва да има едно писмо с текста, който си изпратил след редакцията.
-3. В търсачката отвори `sys_email.list`. Филтрирай по тази поръчка. Има едно изходящо писмо към променения получател.
-4. Ако в Activities няма писмо, натисни филтъра на Activities и включи Email. Не добавяй същия текст в Additional comments. Това прави втори запис.
+2. Отвори `sys_email.list`. Намери писмото по темата `Erinnerung zur Order`.
+3. На записа провери:
+   - **Target table** е таблицата на поръчката
+   - **Target** е тази поръчка
+   - **Type** е `sent`
+4. Ако Target е празен, писмото не е изпратено от формата на поръчката и Activity няма към какво да го покаже. Отваряй Email от самата поръчка.
+5. Ако Target е поръчката, а в Activity го няма: в заглавието на Activity натисни филтъра (фунията) и включи **Email**. Презареди формата.
+6. Ако във филтъра няма Email, отвори related list **Emails** на формата. Писмото трябва да е там. Тогава Activity на тази форма показва само коментари, не писма.
 
 ## Стъпка 7. Провери, че писмото не тръгва само
 
@@ -204,33 +209,29 @@ Vorsitzender des Aufsichtsrates: Detlev Klage
 - след Send писмото се вижда в Activities
 - запис или смяна на статус не изпращат това писмо
 
-var AbstimmpartnerEmails = Class.create();
-AbstimmpartnerEmails.prototype = {
-    initialize: function() {},
 
-    getEmails: function() {
-        var emails = [];
-        var seen = {};
-        var ids = '';
-        if (typeof current !== 'undefined' && current)
-            ids = current.getValue('u_internal_coordination_partner') || '';
+(function executeRule(current, previous) {
+    var tableName = current.getValue('target_table');
+    var recordId = current.getValue('instance');
+    if (!tableName || !recordId)
+        return;
 
-        if (!ids)
-            return '';
+    var order = new GlideRecord(tableName);
+    if (!order.get(recordId))
+        return;
 
-        var user = new GlideRecord('sys_user');
-        user.addQuery('sys_id', 'IN', ids);
-        user.query();
-        while (user.next()) {
-            var addr = (user.getValue('email') || '').trim();
-            var key = addr.toLowerCase();
-            if (addr && !seen[key]) {
-                seen[key] = true;
-                emails.push(addr);
-            }
-        }
-        return emails.join(',');
-    },
+    var text = 'Gesendete E-Mail\n' +
+        'An: ' + (current.getValue('recipients') || '') + '\n' +
+        'Betreff: ' + (current.getValue('subject') || '') + '\n\n' +
+        (current.getValue('body_text') || current.getValue('body') || '');
 
-    type: 'AbstimmpartnerEmails'
-};
+    if (order.isValidField('work_notes'))
+        order.work_notes = text;
+    else if (order.isValidField('comments'))
+        order.comments = text;
+    else
+        return;
+
+    order.setWorkflow(false);
+    order.update();
+})(current, previous);
