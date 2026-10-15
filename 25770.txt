@@ -1,0 +1,5 @@
+Anpassung Tab "LBBW" Darstellung in Sektionen analog der Quote.
+Als Ordermanager möchte ich, dass im Tab "LBBW" die Attribute in Sektionen dargestellt werden analog wie in der Quote.
+Diese Story ergibt sich aus Anforderungen nach dem Test der STRY0025555.
+Als Ordermanager möchte ich, dass im Tab "LBBW" die Attribute in Sektionen dargestellt werden analog wie in der Quote.
+Die Attribute im Tab "LBBW" sind in Sektionen aufgeteilt analog wie bei der Quote
