@@ -1,0 +1,16 @@
+Neuer Tab "Genehmigungen"
+
+Auf der Quote soll es einen zusätzlichen Tab "Genehmigungen" geben, die alle Genehmigungsvorgänge auflistet
+
+Als KAM möchte ich einen eigenen Tab „Genehmigungen" mit allen relevanten Freigabevorgängen zu dieser Quote sehen, damit ich offene, laufende, und bereits erledigte Genehmigungen auf einen Blick sehen und bearbeiten kann.
+
+Somit ist sichergestellt, dass die Historie von bereits getätigten, abgelehnten Genehmigungen sofort einsehbar ist und außerdem die korrekte offene Genehmigung ausgewählt wird.
+
+- Es existiert ein zusätzlicher Tab „Genehmigungen", der in der Navigation für alle sichtbar ist.
+- Die Liste zeigt den Status (offen / genehmigt / abgelehnt) und den zugehörigen Zeitpunkt an
+- Aus dem Tab heraus kann eine Genehmigung direkt geöffnet und dort dann genehmigt oder abgelehnt werden.
+
+Acceptance criteria:
+- Es existiert ein zusätzlicher Tab „Genehmigungen", der in der Navigation für alle sichtbar ist.
+- Die Liste zeigt den Status (offen / genehmigt / abgelehnt) und den zugehörigen Zeitpunkt an
+- Aus dem Tab heraus kann eine Genehmigung direkt geöffnet und dort dann genehmigt oder abgelehnt werden.
