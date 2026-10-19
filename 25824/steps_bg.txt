@@ -1,0 +1,188 @@
+Как се изпълнява история 25824
+
+На Quote (`sn_quote_mgmt_core_quote`) се добавя таб **Genehmigungen**. Той показва всички редове от `sysapproval_approver` за тази Quote: отворени, одобрени и отказани. От реда се отваря самата Genehmigung и там се ползват съществуващите бутони Approve и Reject.
+
+Нова таблица не се създава. Нов бутон за одобрение не се създава. Табът няма условие по роля, затова е в навигацията за всеки, който отваря Quote.
+
+## Стъпка 1. Провери къде стоят одобренията
+
+1. Влез като администратор.
+2. Отвори **System Definition > Scripts - Background**.
+3. Пусни скрипта. Смени `QT0001106` с номер на Quote, която вече е минавала през одобрение. Ако няма такава, първо пусни една тестова Quote до стъпката, която създава Genehmigung.
+
+```javascript
+var quote = new GlideRecord('sn_quote_mgmt_core_quote');
+quote.addQuery('number', 'QT0001106');
+quote.setLimit(1);
+quote.query();
+if (!quote.next()) {
+    gs.print('NO_QUOTE');
+} else {
+    gs.print('extends_task=' + quote.instanceOf('task'));
+    var byTask = new GlideRecord('sysapproval_approver');
+    byTask.addQuery('sysapproval', quote.getUniqueValue());
+    byTask.query();
+    gs.print('by_sysapproval=' + byTask.getRowCount());
+    if (byTask.isValidField('document_id')) {
+        var byDoc = new GlideRecord('sysapproval_approver');
+        byDoc.addQuery('document_id', quote.getUniqueValue());
+        byDoc.query();
+        gs.print('by_document_id=' + byDoc.getRowCount());
+    }
+}
+```
+
+4. Запиши резултата.
+   - `by_sysapproval` е по-голямо от 0: в стъпка 2 ползваш `sysapproval`. Това е очакваното, защото Quote наследява `task`.
+   - само `by_document_id` е по-голямо от 0: в стъпка 2 ползваш `document_id` и `source_table`.
+   - и двете са 0: тази Quote няма Genehmigung. Повтори с друга, или създай одобрение от процеса на Quote и пусни скрипта пак. Не създавай втора таблица.
+
+5. Отвори същата Quote така, както я отваря KAM. Погледни лентата с табовете. Стъпки 2 и 3 слагат таба на формата. Ако KAM е в Workspace, същият related list трябва да е и на workspace изгледа. Ако лентата е само Aktivität и Anhänge в портала `/com?id=ticket`, това е друга страница. Кажи го преди да добавяш таб там. Историята е за Quote, която KAM обработва.
+
+## Стъпка 2. Създай връзката за таба
+
+1. В търсачката напиши `sys_relationship.list` и натисни Enter.
+2. Натисни New.
+3. Попълни:
+
+- Name: `Genehmigungen`
+- Applies to table: `sn_quote_mgmt_core_quote`
+- Queries from table: `sysapproval_approver`
+
+4. Query with:
+
+```javascript
+(function refineQuery(current, parent) {
+    current.addQuery('sysapproval', parent.sys_id);
+    current.orderByDesc('sys_updated_on');
+})(current, parent);
+```
+
+Ако стъпка 1 е показала само `document_id`, замени заявката с:
+
+```javascript
+(function refineQuery(current, parent) {
+    current.addQuery('source_table', 'sn_quote_mgmt_core_quote');
+    current.addQuery('document_id', parent.sys_id);
+    current.orderByDesc('sys_updated_on');
+})(current, parent);
+```
+
+5. Submit.
+
+Името на връзката е заглавието на таба. Не преименувай таблицата `sysapproval_approver`. Не слагай филтър по `state`. Отказаните редове трябва да останат в списъка.
+
+## Стъпка 3. Сложи таба на изгледите, които потребителите отварят
+
+1. Отвори `sys_ui_form.list`.
+2. Филтър: Name is `sn_quote_mgmt_core_quote`.
+3. Запиши View за всеки ред. Обикновено има Default и още един за Workspace (`workspace` или `sow`).
+
+За всеки такъв изглед:
+
+4. Отвори една Quote.
+5. Ако изгледът не е Default, смени го от менюто на формата (иконата на изгледа, или `sysparm_view` в адреса).
+6. Контекстно меню на формата (иконата до името) > Configure > Related Lists.
+7. Отляво намери `Genehmigungen`. Ако го няма, презареди формата след стъпка 2.
+8. Премести го вдясно, при избраните related lists.
+9. Save.
+
+Не слагай роля на related list. Табът трябва да се вижда от всеки, който отваря Quote.
+
+Ако в Selected вече има Approvals (`sysapproval_approver.sysapproval`), махни го от този изглед. Иначе ще има два таба с едни и същи редове. Връзката от стъпка 2 е табът с името от историята.
+
+## Стъпка 4. Колоните в списъка
+
+1. Отвори Quote, на която има поне една Genehmigung.
+2. Отвори таба Genehmigungen.
+3. Десен бутон върху заглавието на списъка > Configure > List Layout.
+4. Остави само тези колони, в този ред:
+
+- `approver` — кой трябва да реши, за да се избере правилният отворен ред
+- `state` — статус
+- `sys_updated_on` — часът на текущия статус
+- `sys_created_on`
+- `comments`
+
+5. Save.
+
+Този layout се записва за related list на Quote. Не отваряй List Layout от `sysapproval_approver.list`. Това би сменило общия списък на всички одобрения в инстанцията.
+
+Стойностите на `state`, които историята описва:
+
+| В списъка | Стойност в базата |
+|---|---|
+| offen | `requested` |
+| genehmigt | `approved` |
+| abgelehnt | `rejected` |
+
+На немски `requested` често вече е **Angefordert**, `approved` е **Genehmigt**, `rejected` е **Abgelehnt**. Не преименувай choice записите на `sysapproval_approver`. Те се ползват от всяка таблица в инстанцията. Angefordert е отворената Genehmigung.
+
+`sys_updated_on` е Zeitpunkt. При одобрение или отказ полето се обновява. При все още отворен ред то е часът на последната промяна, обикновено създаването.
+
+## Стъпка 5. KAM да вижда и чуждите редове
+
+Отвори таба като KAM, не като admin. Ако вижда одобрени, отказани и отворени редове за тази Quote, мини на стъпка 6.
+
+Ако списъкът е празен, а като admin не е, четенето е забранено от ACL. Стандартното право често пуска само самия approver.
+
+1. `sys_security_acl.list`, New.
+2. Попълни:
+
+- Type: `record`
+- Operation: `read`
+- Name (table): `sysapproval_approver`
+- Admin overrides: включено
+- Advanced: включено
+- Description: `Quote readers can read approvals of that quote`
+
+3. Script:
+
+```javascript
+(function() {
+    var quoteId = current.getValue('sysapproval');
+    if (!quoteId)
+        return false;
+
+    var quote = new GlideRecord('sn_quote_mgmt_core_quote');
+    if (!quote.get(quoteId))
+        return false;
+
+    return quote.canRead();
+})();
+```
+
+Ако в стъпка 1 ползваш `document_id`, смени първия ред с `current.getValue('document_id')` и добави проверка `current.getValue('source_table') == 'sn_quote_mgmt_core_quote'`.
+
+4. Submit.
+5. Не прави write ACL. Одобряването и отказът остават на потребителя в полето `approver`.
+
+Като KAM отвори Quote пак. Трябва да вижда редовете, включително отказаните.
+
+## Стъпка 6. Отваряне, одобрение и отказ
+
+1. В таба натисни линка на реда. Отваря се записът в `sysapproval_approver`.
+2. Бутоните са съществуващите **Approve** и **Reject** (на немски Genehmigen / Ablehnen).
+3. Те се показват, когато `state` е `requested` и влезлият потребител е `approver` на този ред.
+4. KAM, който не е approver, отваря реда и вижда статуса, но не одобрява чужда Genehmigung. За теста влез с потребителя от колоната Approver.
+
+Ако този потребител е approver, статусът е Angefordert, а бутоните ги няма:
+
+1. `sys_ui_action.list`
+2. Филтър: Table is `sysapproval_approver`, Name is `Approve` или `Reject`.
+3. Провери Active и Form button. Не създавай втори бутон със същото действие.
+
+## Стъпка 7. Проверка
+
+1. Отвори Quote с поне един отказан и един отворен ред. Табът Genehmigungen е в лентата.
+2. Влез с втори потребител, който също отваря тази Quote, но не е approver. Табът е на същото място и списъкът показва и двата реда.
+3. В списъка се виждат статус и час (`state`, `sys_updated_on`).
+4. Отвори отворения ред с потребителя от Approver. Approve записва Genehmigt. Откажи друга тестова Genehmigung. В таба и двата реда остават, със сменени статус и час.
+5. Отвори Quote без нито една Genehmigung. Табът пак е в лентата, списъкът е празен.
+6. Запиши Quote, без да пипаш одобрение. Редовете не се променят.
+
+## Историята е готова, когато
+
+- на Quote има таб Genehmigungen и го вижда всеки, който отваря записа
+- списъкът показва отворени, одобрени и отказани редове, със статус и час
+- от таба се отваря Genehmigung и approver-ът я одобрява или отказва там
