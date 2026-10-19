@@ -1,0 +1,16 @@
+Fehlermeldung Absendung Anfrage: Related Party...
+
+Beim Absenden einer Anfrage über die IT-Anforderungscheckliste BayernLB kommt angehängte Fehlermeldung. Die Anfrage wird dennoch abgeschickt und eine Quote erzeugt.
+
+Testfall Nummer: 30
+Instanz: INT
+Benutzer/Rolle: Test User SOM_KundeBayernLB
+Zeitpunkt mit Sekunden: 15.10.2026, 8:50
+Datensatznummern: QT0001106
+Vorbedingungen/Testdaten: Anfrage erstellt und abgesendet
+Erwartetes Ergebnis: keine Fehlermeldung
+Tatsächliches Ergebnis (Was passiert ist, nicht wie man es bewertet): Fehlermeldung erstellt
+Fehlermeldung (Wörtlich kopiert, nicht abgetippt): Related Party "" already has type
+Reproduzierbar?: Immer / sporadisch / nur einmal aufgetreten: Immer
+Workaround vorhanden?: Nein
+Zusätzlich als Anhang: Screenshot
