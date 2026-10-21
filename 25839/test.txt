@@ -30,3 +30,12 @@ Background message, type:error, message: Related Party "Landesbank Baden-Württe
 Operation against file 'sn_quote_mgmt_core_quote_related_party_address' was aborted by Business Rule 'Quote related party validations^c2a09b71f0845310b0e43cf86fc08449'. Business Rule Stack:Quote related party validations
 Background message, type:error, message: Related Party "Landesbank Baden-Württemberg" already has type Ship-To
 Operation against file 'sn_quote_mgmt_core_quote_related_party_address' was aborted by Business Rule 'Quote related party validations^8ea09b71f0845310b0e43cf86fc08449'. Business Rule Stack:Quote related party validations
+
+
+Result after change of script:
+
+[0:00:00.124] Script completed in scope global: scriptScript execution history and recovery available here
+
+*** Script: route_to_market=direct, account=Landesbank Baden-Württemberg
+
+
