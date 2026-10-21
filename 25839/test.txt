@@ -1,0 +1,15 @@
+Порталният тест не е нужен. На ENTW грешката се вдига от същия код, ако createRelatedPartyRecords се пусне втори път върху оферта, която вече има related parties.
+
+Влез в ENTW като администратор и отвори QT0001106.
+Провери, че account е попълнен и route_to_market е direct. Ако route_to_market е празно, сложи direct и запиши. Стойността direct отговаря на шестте реда с Landesbank Baden-Württemberg.
+Отвори System Definition > Scripts - Background и пусни:
+
+var quote = new GlideRecord('sn_quote_mgmt_core_quote');
+quote.get('number', 'QT0001106');
+gs.info('route_to_market=' + quote.getValue('route_to_market') + ', account=' + quote.getDisplayValue('account'));
+new sn_quote_mgmt_core.QuoteRelatedPartyUtil().createRelatedPartyRecords(quote);
+
+
+След изпълнението на страницата трябва да се появи Related Party "" already has type. Може да излезе повече от веднъж, по веднъж за всеки от шестте типа.
+Отвори пак Quote Related Parties. Редовете трябва да са пак шест. Новите insert-и се спират от business rule-а и не се записват.
+Това е същата проверка, която спира реда при изпращане на заявката. След като я видиш, импортни промяната и пусни скрипта отново. Съобщението трябва да липсва, а редовете да останат шест.
