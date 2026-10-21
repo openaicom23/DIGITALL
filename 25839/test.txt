@@ -13,3 +13,20 @@ new sn_quote_mgmt_core.QuoteRelatedPartyUtil().createRelatedPartyRecords(quote);
 След изпълнението на страницата трябва да се появи Related Party "" already has type. Може да излезе повече от веднъж, по веднъж за всеки от шестте типа.
 Отвори пак Quote Related Parties. Редовете трябва да са пак шест. Новите insert-и се спират от business rule-а и не се записват.
 Това е същата проверка, която спира реда при изпращане на заявката. След като я видиш, импортни промяната и пусни скрипта отново. Съобщението трябва да липсва, а редовете да останат шест.
+
+result:
+
+
+*** Script: route_to_market=direct, account=Landesbank Baden-Württemberg
+Background message, type:error, message: Related Party "Landesbank Baden-Württemberg" already has type Sold-To
+Operation against file 'sn_quote_mgmt_core_quote_related_party_address' was aborted by Business Rule 'Quote related party validations^02a09b71f0845310b0e43cf86fc08439'. Business Rule Stack:Quote related party validations
+Background message, type:error, message: Related Party "Landesbank Baden-Württemberg" already has type Entitled-To
+Operation against file 'sn_quote_mgmt_core_quote_related_party_address' was aborted by Business Rule 'Quote related party validations^caa09b71f0845310b0e43cf86fc0843a'. Business Rule Stack:Quote related party validations
+Background message, type:error, message: Related Party "Landesbank Baden-Württemberg" already has type Bill-To
+Operation against file 'sn_quote_mgmt_core_quote_related_party_address' was aborted by Business Rule 'Quote related party validations^86a09b71f0845310b0e43cf86fc0843b'. Business Rule Stack:Quote related party validations
+Background message, type:error, message: Related Party "Landesbank Baden-Württemberg" already has type Installed At
+Operation against file 'sn_quote_mgmt_core_quote_related_party_address' was aborted by Business Rule 'Quote related party validations^42a09b71f0845310b0e43cf86fc0843c'. Business Rule Stack:Quote related party validations
+Background message, type:error, message: Related Party "Landesbank Baden-Württemberg" already has type End Customer
+Operation against file 'sn_quote_mgmt_core_quote_related_party_address' was aborted by Business Rule 'Quote related party validations^c2a09b71f0845310b0e43cf86fc08449'. Business Rule Stack:Quote related party validations
+Background message, type:error, message: Related Party "Landesbank Baden-Württemberg" already has type Ship-To
+Operation against file 'sn_quote_mgmt_core_quote_related_party_address' was aborted by Business Rule 'Quote related party validations^8ea09b71f0845310b0e43cf86fc08449'. Business Rule Stack:Quote related party validations
