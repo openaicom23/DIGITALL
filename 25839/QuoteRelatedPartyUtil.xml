@@ -1,0 +1,32 @@
+<xml>
+<sys_script_include>
+<access>public</access>
+<active>true</active>
+<api_name>sn_quote_mgmt_core.QuoteRelatedPartyUtil</api_name>
+<caller_access/>
+<client_callable>false</client_callable>
+<description>
+Customers can override methods of QuoteRelatedPartyUtilOOB in this file
+</description>
+<mobile_callable>false</mobile_callable>
+<name>QuoteRelatedPartyUtil</name>
+<sandbox_callable>false</sandbox_callable>
+<script>
+var QuoteRelatedPartyUtil = Class.create(); QuoteRelatedPartyUtil.prototype = Object.extendsObject(QuoteRelatedPartyUtilOOB,{ type: 'QuoteRelatedPartyUtil' });
+</script>
+<sys_class_name>sys_script_include</sys_class_name>
+<sys_created_by>admin</sys_created_by>
+<sys_created_on>2025-12-28 16:58:12</sys_created_on>
+<sys_id>3a310f92ffc232104acdffffffffff59</sys_id>
+<sys_mod_count>0</sys_mod_count>
+<sys_name>QuoteRelatedPartyUtil</sys_name>
+<sys_package display_value="Quote Management Data Model" source="sn_quote_mgmt_core">d5457076b70131101aaebe508e11a907</sys_package>
+<sys_policy/>
+<sys_scope display_value="Quote Management Data Model">d5457076b70131101aaebe508e11a907</sys_scope>
+<sys_update_name>
+sys_script_include_3a310f92ffc232104acdffffffffff59
+</sys_update_name>
+<sys_updated_by>admin</sys_updated_by>
+<sys_updated_on>2025-12-29 07:12:00</sys_updated_on>
+</sys_script_include>
+</xml>
