@@ -174,9 +174,29 @@ if (!quote.next()) {
 2. Филтър: Table is `sysapproval_approver`, Name is `Approve` или `Reject`.
 3. Провери Active и Form button. Не създавай втори бутон със същото действие.
 
+## Как се добавя тестов ред
+
+Табът няма бутон, който създава Genehmigung. Редът е запис в `sysapproval_approver`, вързан към Quote. Направи го върху тестова Quote в INT.
+
+1. В търсачката напиши `sysapproval_approver.list` и натисни Enter.
+2. Натисни New.
+3. Попълни:
+
+- Approver (Genehmigender): потребителят, с който си влязъл. Иначе после няма бутони Approve и Reject.
+- Approval for (Genehmigung für): номерът на Quote, например `QT0001106`.
+- State (Status): `Requested` (Angefordert).
+
+4. Submit.
+
+Повтори New още веднъж със същия Approver, същата Quote и пак `Requested`. Трябват два отворени реда: единият за одобрение, другият за отказ.
+
+Отвори Quote и таба Genehmigungen. Двата реда са там, със статус Angefordert и час.
+
+Ако в Approval for няма тази Quote, таблицата не се избира като task. Тогава не ползвай това поле. На същата форма попълни `source_table` = `sn_quote_mgmt_core_quote` и `document_id` = sys_id на Quote. Връзката от стъпка 2 трябва да търси по `document_id`, не по `sysapproval`.
+
 ## Стъпка 7. Проверка
 
-1. Отвори Quote с поне един отказан и един отворен ред. Табът Genehmigungen е в лентата.
+1. Отвори тестовата Quote. Табът Genehmigungen е в лентата и показва двата реда от горния раздел.
 2. Влез с втори потребител, който също отваря тази Quote, но не е approver. Табът е на същото място и списъкът показва и двата реда.
 3. В списъка се виждат статус и час (`state`, `sys_updated_on`).
 4. Отвори отворения ред с потребителя от Approver. Approve записва Genehmigt. Откажи друга тестова Genehmigung. В таба и двата реда остават, със сменени статус и час.

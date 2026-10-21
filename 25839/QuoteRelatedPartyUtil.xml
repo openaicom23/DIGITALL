@@ -11,9 +11,98 @@ Customers can override methods of QuoteRelatedPartyUtilOOB in this file
 <mobile_callable>false</mobile_callable>
 <name>QuoteRelatedPartyUtil</name>
 <sandbox_callable>false</sandbox_callable>
-<script>
-var QuoteRelatedPartyUtil = Class.create(); QuoteRelatedPartyUtil.prototype = Object.extendsObject(QuoteRelatedPartyUtilOOB,{ type: 'QuoteRelatedPartyUtil' });
-</script>
+<script><![CDATA[
+var QuoteRelatedPartyUtil = Class.create();
+QuoteRelatedPartyUtil.prototype = Object.extendsObject(QuoteRelatedPartyUtilOOB, {
+
+	createRecordsForSellerOrganization: function(quoteGr, types) {
+		var sellerOrganization = quoteGr.getValue('seller_organization');
+		if (gs.nil(sellerOrganization)) {
+			return;
+		}
+		if (!types) {
+			types = [];
+		}
+
+		var configGR = new GlideRecordSecure(QuoteConstants.RELATED_PARTY_CONFIGURATION_TABLE);
+		configGR.addQuery('entity_type', global.CSMBaseConstants.SERVICE_ORGANIZATION_TABLE);
+		if (types.length > 0) {
+			configGR.addQuery('name', 'IN', types);
+		}
+		configGR.addQuery('applies_to', 'sn_quote_mgmt_core_quote');
+		configGR.query();
+		while (configGR.next()) {
+			var typeSysId = configGR.getValue('sys_id');
+			if (this._activeRelatedPartyExists(quoteGr.getValue('sys_id'), typeSysId, '', sellerOrganization)) {
+				continue;
+			}
+
+			var relatedPartyGR = new GlideRecordSecure(QuoteConstants.QUOTE_RELATED_PARTY_ADDRESS_TABLE);
+			relatedPartyGR.initialize();
+			relatedPartyGR.setValue('quote', quoteGr.getValue('sys_id'));
+			relatedPartyGR.setValue('type', typeSysId);
+			relatedPartyGR.setValue('order', configGR.getValue('default_order'));
+			relatedPartyGR.setValue('seller_organization', sellerOrganization);
+			relatedPartyGR.setValue('responsibility', configGR.getValue('default_responsibility'));
+			relatedPartyGR.insert();
+		}
+	},
+
+	createRecordsForAccount: function(quoteGr, types) {
+		var account = quoteGr.getValue('account');
+		if (gs.nil(account)) {
+			return;
+		}
+		if (!types) {
+			types = [];
+		}
+
+		var primaryAccountAddress = this.getPrimaryAccountAddress(account);
+		var configGR = new GlideRecordSecure(QuoteConstants.RELATED_PARTY_CONFIGURATION_TABLE);
+		configGR.addQuery('entity_type', global.CSMBaseConstants.ACCOUNT_TABLE);
+		if (types.length > 0) {
+			configGR.addQuery('name', 'IN', types);
+		}
+		configGR.addQuery('applies_to', 'sn_quote_mgmt_core_quote');
+		configGR.query();
+		while (configGR.next()) {
+			var typeSysId = configGR.getValue('sys_id');
+			if (this._activeRelatedPartyExists(quoteGr.getValue('sys_id'), typeSysId, account, '')) {
+				continue;
+			}
+
+			var relatedPartyGR = new GlideRecordSecure(QuoteConstants.QUOTE_RELATED_PARTY_ADDRESS_TABLE);
+			relatedPartyGR.initialize();
+			relatedPartyGR.setValue('quote', quoteGr.getValue('sys_id'));
+			relatedPartyGR.setValue('type', typeSysId);
+			relatedPartyGR.setValue('order', configGR.getValue('default_order'));
+			relatedPartyGR.setValue('account', account);
+			if (!gs.nil(primaryAccountAddress)) {
+				relatedPartyGR.setValue('account_address', primaryAccountAddress);
+			}
+			relatedPartyGR.setValue('responsibility', configGR.getValue('default_responsibility'));
+			relatedPartyGR.insert();
+		}
+	},
+
+	_activeRelatedPartyExists: function(quoteSysId, typeSysId, accountSysId, sellerOrganizationSysId) {
+		var relatedPartyGR = new GlideRecord(QuoteConstants.QUOTE_RELATED_PARTY_TABLE);
+		relatedPartyGR.addQuery('quote', quoteSysId);
+		relatedPartyGR.addQuery('type', typeSysId);
+		relatedPartyGR.addActiveQuery();
+		if (GlidePluginManager.isActive('com.snc.business_organization_qm') && !gs.nil(sellerOrganizationSysId)) {
+			relatedPartyGR.addQuery('seller_organization', sellerOrganizationSysId);
+		} else {
+			relatedPartyGR.addQuery('account', accountSysId);
+		}
+		relatedPartyGR.setLimit(1);
+		relatedPartyGR.query();
+		return relatedPartyGR.hasNext();
+	},
+
+	type: 'QuoteRelatedPartyUtil'
+});
+]]></script>
 <sys_class_name>sys_script_include</sys_class_name>
 <sys_created_by>admin</sys_created_by>
 <sys_created_on>2025-12-28 16:58:12</sys_created_on>
