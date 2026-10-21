@@ -1,0 +1,56 @@
+<xml>
+<sys_script>
+<abort_action>false</abort_action>
+<access>package_private</access>
+<action_delete>false</action_delete>
+<action_insert>true</action_insert>
+<action_query>false</action_query>
+<action_update>false</action_update>
+<active>true</active>
+<add_message>false</add_message>
+<advanced>true</advanced>
+<change_fields>false</change_fields>
+<client_callable>false</client_callable>
+<collection>sn_quote_mgmt_core_quote</collection>
+<condition/>
+<description/>
+<execute_function>false</execute_function>
+<filter_condition table="sn_quote_mgmt_core_quote">
+version=1^EQ
+<item goto="false" or="false" field="version" endquery="false" value="1" operator="=" newquery="false"/>
+<item goto="false" or="false" field="" endquery="true" value="" operator="=" newquery="false"/>
+</filter_condition>
+<is_rest>false</is_rest>
+<message/>
+<name></name>
+<order>100</order>
+<priority>100</priority>
+<rest_method/>
+<rest_method_text/>
+<rest_service/>
+<rest_service_text/>
+<rest_variables/>
+<role_conditions/>
+<script>
+(function executeRule(current, previous /*null when async*/ ) { new sn_quote_mgmt_core.QuoteRelatedPartyUtil().createRelatedPartyRecords(current); })(current, previous);
+</script>
+<sys_class_name>sys_script</sys_class_name>
+<sys_created_by>admin</sys_created_by>
+<sys_created_on>2025-12-28 16:52:20</sys_created_on>
+<sys_domain>global</sys_domain>
+<sys_domain_path>/</sys_domain_path>
+<sys_id>1e1ff69eff8232104acdffffffffff71</sys_id>
+<sys_mod_count>2</sys_mod_count>
+<sys_name>Create quote related parties on header</sys_name>
+<sys_overrides/>
+<sys_package display_value="Quote Management Data Model" source="sn_quote_mgmt_core">d5457076b70131101aaebe508e11a907</sys_package>
+<sys_policy/>
+<sys_scope display_value="Quote Management Data Model">d5457076b70131101aaebe508e11a907</sys_scope>
+<sys_update_name>sys_script_1e1ff69eff8232104acdffffffffff71</sys_update_name>
+<sys_updated_by>admin</sys_updated_by>
+<sys_updated_on>2026-02-19 05:32:49</sys_updated_on>
+<template/>
+<when>after</when>
+</sys_script>
+<sys_translated_text action="delete_multiple" query="documentkey=1e1ff69eff8232104acdffffffffff71"/>
+</xml>
