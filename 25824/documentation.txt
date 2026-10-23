@@ -1,0 +1,106 @@
+Story 25824 — Neuer Tab "Genehmigungen"
+
+Source: `25824/update_sets.txt`, captured by IZEAE65. Story: `25824/story.txt`.
+
+On Quote (`sn_quote_mgmt_core_quote`) the related list **Genehmigungen** shows the `sysapproval_approver` rows for that Quote. The link is `source_table` + `document_id`, not `sysapproval`. Open, approved, and rejected rows all stay in the list. The newest change is first.
+
+No new table. No new Approve or Reject button. No ACL. No change to the `state` choices.
+
+The file contains six payloads. The list layout is pasted twice; it is one record.
+
+## Relationship
+
+`sys_relationship` **Genehmigungen**, sys_id `4d1f659568c81f10b0e4e691f7bdbeba`.
+
+- Applies to: `sn_quote_mgmt_core_quote`
+- Queries from: `sysapproval_approver`
+- Application: Quote Management Data Model (`sn_quote_mgmt_core`)
+- Created 2026-10-19 14:46, updated 2026-10-20 12:22
+
+```javascript
+(function refineQuery(current, parent) {
+    current.addQuery('source_table', 'sn_quote_mgmt_core_quote');
+    current.addQuery('document_id', parent.sys_id);
+    current.orderByDesc('sys_updated_on');
+})(current, parent);
+```
+
+There is no filter on `state`, so a rejected approval remains on the tab. `sys_updated_on` descending is the Zeitpunkt: approve and reject update that field, and the latest row is at the top.
+
+The relationship name is the tab title.
+
+## Tab on the Quote views
+
+The relationship is the last related list on each of these views. Saving a related list writes the whole list, so each payload below is the full set of tabs on that view, not only the new one.
+
+| View | Update name | Application | Genehmigungen position |
+|---|---|---|---|
+| Default view | `sys_ui_related_sn_quote_mgmt_core_quote_null` | Quote Management Data Model | 7 |
+| LBBW Quote (`lbbw_quote`) | `sys_ui_related_sn_quote_mgmt_core_quote_lbbw_quote` | Quote Management Data Model | 7 |
+| CSM FSM Configurable Workspace | `sys_ui_related_sn_quote_mgmt_core_quote_CSMFSMConfigurableWorkspace` | Quote Management Data Model | 7 |
+| SOM Workspace (`workspace`) | `sys_ui_related_sn_quote_mgmt_core_quote_workspace` | Quote Management Application | 8 |
+
+Default view, LBBW Quote, and CSM FSM Configurable Workspace, in order:
+
+0. `sn_quote_mgmt_core_quote_line_item.quote` — on Default view this entry is ordered by `u_position_number`
+1. `sn_quote_mgmt_core_quote_task.quote`
+2. `REL:4ad59dd477927110ce3ea465ae5a99fa`
+3. `sn_ind_tmt_orm_order.quote`
+4. `sn_sales_agmt_core_sales_agreement.quote`
+5. `sn_quote_mgmt_core_quote_related_party_address.quote`
+6. `sn_quote_mgmt_core_quote_associated_contact.quote`
+7. `REL:4d1f659568c81f10b0e4e691f7bdbeba` — Genehmigungen
+
+SOM Workspace, in order:
+
+0. `sn_quote_mgmt_core_quote_line_item.quote`
+1. `sn_quote_mgmt_core_quote_task.quote`
+2. `REL:4ad59dd477927110ce3ea465ae5a99fa`
+3. `sn_sales_agmt_core_sales_agreement.quote`
+4. `sn_quote_mgmt_core_quote_internal_contact.u_quote`
+5. `sn_quote_mgmt_core_quote_associated_contact.quote`
+6. `sn_ind_tmt_orm_order.quote`
+7. `REL:b9edf0ca0a0a0b010035de2d6b579a03`
+8. `REL:4d1f659568c81f10b0e4e691f7bdbeba` — Genehmigungen
+
+None of the four views includes `sysapproval_approver.sysapproval`. The same rows are not listed a second time under the standard Approvals related list.
+
+No role is set on the related list. Anyone who can open the Quote on these views sees the tab. A Quote with no approval rows still shows the tab; the list is empty.
+
+## Columns
+
+List layout `sys_ui_list_sn_quote_mgmt_core_quote_4d1f659568c81f10b0e4e691f7bdbeba_workspace`, sys_id `7b7b9eadf0401310b0e43cf86fc08488`.
+
+This layout is only for the **SOM Workspace** view of the Genehmigungen relationship. Created 2026-10-20 12:33. The record's application is Environmental, Social, Governance Management (`sn_esg`).
+
+Columns, in order:
+
+0. `approver`
+1. `state`
+2. `sys_updated_on`
+3. `sys_created_on`
+4. `comments`
+
+`approver` is who has to decide, so the open row can be picked. `state` is the status. `sys_updated_on` is the time of the current status.
+
+The `state` values on `sysapproval_approver` are unchanged:
+
+| Story | Value | Usual German label |
+|---|---|---|
+| offen | `requested` | Angefordert |
+| genehmigt | `approved` | Genehmigt |
+| abgelehnt | `rejected` | Abgelehnt |
+
+Default view, LBBW Quote, and CSM FSM Configurable Workspace have the tab and no column layout in this update set. On those views the list uses the columns already defined for `sysapproval_approver`.
+
+## What this update set does not contain
+
+- No read or write ACL on `sysapproval_approver`. A user sees a row when the existing approval ACLs allow it.
+- No UI action. Approve and Reject (Genehmigen / Ablehnen) are the existing buttons on the approval record. They show when `state` is `requested` and the logged-in user is `approver`.
+- No record that creates an approval. The tab only lists rows that already exist, linked by `source_table` = `sn_quote_mgmt_core_quote` and `document_id` = the Quote sys_id.
+
+## Story criteria against this update set
+
+- The tab **Genehmigungen** is on Default view, LBBW Quote, CSM FSM Configurable Workspace, and SOM Workspace, with no role on the related list.
+- On SOM Workspace the list shows `state` and `sys_updated_on`, and it includes every state because the relationship does not filter `state`.
+- The row opens `sysapproval_approver`. Approval and rejection are the existing buttons on that record.
