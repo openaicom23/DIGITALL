@@ -116,3 +116,27 @@ An extra Allow write ACL does not stop this. The rule that already grants write 
 - Deny unless write on `sysapproval_approver.state` and on `sysapproval_approver.approver`
 
 Only the stored approver, an active approval delegate, `approval_admin`, `admin`, or `system` can set `approved` or `rejected`, or change `approver`, on a quote approval. A UI policy locks those two fields on the form when the logged-in user is not the approver and `source_table` is `sn_quote_mgmt_core_quote`. Other approval tables stay unchanged. `cancelled` is not blocked.
+
+## Кой одобрява и отказва заявката
+
+За Genehmigung към Quote (`sn_quote_mgmt_core_quote`, запис в `sysapproval_approver` със статус Angefordert / `requested`) одобряване (Genehmigt / `approved`) и отказ (Abgelehnt / `rejected`) минават само за:
+
+- потребителят, който вече е записан в Approver (Genehmiger)
+- активен негов делегат, при когото Approvals е включено и периодът на делегирането включва текущия момент
+- потребител с роля `approval_admin`
+- потребител с роля `admin`
+- потребител `system` (flow)
+
+Всеки друг отваря реда и вижда статуса. Не може да одобри, да откаже, нито да смени Genehmiger. Бутоните Genehmigen и Ablehnen за него са скрити. Смяна на статуса към `cancelled` не се спира. Genehmigung, която не е за Quote, не се пипа.
+
+## Who can approve and reject the request
+
+On a quote approval (`sn_quote_mgmt_core_quote`, a `sysapproval_approver` row in state Angefordert / `requested`), approve (Genehmigt / `approved`) and reject (Abgelehnt / `rejected`) are allowed only for:
+
+- the user already stored in Approver (Genehmiger)
+- an active delegate of that user, with Approvals enabled, whose delegation period includes the current time
+- a user with the `approval_admin` role
+- a user with the `admin` role
+- the `system` user (flows)
+
+Anyone else can open the row and see the status. They cannot approve it, reject it, or change Genehmiger. The Genehmigen and Ablehnen buttons are hidden for them. A change to `cancelled` is not blocked. An approval that is not for a Quote is left unchanged.
