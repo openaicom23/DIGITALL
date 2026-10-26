@@ -1,0 +1,4 @@
+Getestet mit Test User SOM_Presales_1
+- Tab Genehmigungen vorhanden
+- Tab listet alle Tasks für Genehmigungen (div. Personen) auf
+Aber: Ich kann als Test User SOM_Presales_1 eine Genehmigung einer beliebigen Person öffnen und die Genehmigung durchführen - das muss verhindert werden
