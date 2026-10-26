@@ -207,15 +207,21 @@ answer = new QuoteApprovalGuard().canWriteApprover(current);
 
 ACL на `state` пуска полето, докато стойността още е Angefordert, и отказва чак при запис на Genehmigt. Без това правило падащото меню остава активно. UI policy го заключва веднага за човек, който не е Genehmiger.
 
-1. `sys_ui_policy.list`, New.
+В операторите няма `is not (dynamic)`. Има само `is (dynamic)`, най-отдолу в списъка. На немски е `ist (dynamisch)`. След него третото поле е списък, не търсене на потребител. Избери `Me` (`Ich`).
+
+Правят се две policy. Първата заключва полетата на всяка Quote Genehmigung. Втората ги отключва само когато Genehmiger е влезлият потребител. По-големият Order печели.
+
+### 5.1 Заключване
+
+1. Приложението е Global. `sys_ui_policy.list`, New.
 2. Попълни:
 
 - Table: `sysapproval_approver`
-- Short description: `Quote approval read-only for non-approver`
-- Conditions: `Approver is not (dynamic) Me` AND `Source table is sn_quote_mgmt_core_quote`
+- Short description: `Quote approval read-only`
+- Conditions: `Source table is sn_quote_mgmt_core_quote`
 - Global: включено
 - On load: включено
-- Reverse if false: включено
+- Reverse if false: изключено
 - Inherit: изключено
 - Order: `100`
 
@@ -227,7 +233,29 @@ ACL на `state` пуска полето, докато стойността ощ
 
 5. Submit на двете actions.
 
-Когато влезе самия Genehmiger, Reverse if false маха заключването и той пак сменя Status. Делегат не е в полето Approver, затова падащото меню за него стои заключено. Той минава през бутона Approve, а business rule го пуска.
+### 5.2 Отключване за Genehmiger
+
+1. Отново `sys_ui_policy.list`, New.
+2. Попълни:
+
+- Table: `sysapproval_approver`
+- Short description: `Quote approval editable for approver`
+- Conditions: `Approver is (dynamic) Me` AND `Source table is sn_quote_mgmt_core_quote`
+- Global: включено
+- On load: включено
+- Reverse if false: изключено
+- Inherit: изключено
+- Order: `200`
+
+3. Save.
+4. В UI Policy Actions, New, два пъти:
+
+- Field name: `state`, Read only: изключено
+- Field name: `approver`, Read only: изключено
+
+5. Submit на двете actions.
+
+Делегат не е в полето Approver, затова падащото меню за него стои заключено. Той минава през бутона Approve, а business rule го пуска. Genehmigung извън Quote не влиза в двете conditions и полетата там остават както досега.
 
 ## Стъпка 6. Проверка
 
