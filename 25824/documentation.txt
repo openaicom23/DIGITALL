@@ -104,3 +104,15 @@ Default view, LBBW Quote, and CSM FSM Configurable Workspace have the tab and no
 - The tab **Genehmigungen** is on Default view, LBBW Quote, CSM FSM Configurable Workspace, and SOM Workspace, with no role on the related list.
 - On SOM Workspace the list shows `state` and `sys_updated_on`, and it includes every state because the relationship does not filter `state`.
 - The row opens `sysapproval_approver`. Approval and rejection are the existing buttons on that record.
+
+## Test fix
+
+INT test with `SOM_Presales_1`: the tab and the list are correct, and a user who is not `approver` can still set `state` to `approved` on the workspace form. The activity on QT0001123 shows that user changed Status from Angefordert to Genehmigt while Genehmiger stayed Michaela Tusche.
+
+An extra Allow write ACL does not stop this. The rule that already grants write still grants it. `25824/steps_fix_bg.txt` adds three records in Global:
+
+- Script include `QuoteApprovalGuard`
+- Before update business rule on `sysapproval_approver`, because a UI action calls `current.update()` and skips ACLs
+- Deny unless write on `sysapproval_approver.state` and on `sysapproval_approver.approver`
+
+Only the stored approver, an active approval delegate, `approval_admin`, `admin`, or `system` can set `approved` or `rejected`, or change `approver`, on a quote approval. A UI policy locks those two fields on the form when the logged-in user is not the approver and `source_table` is `sn_quote_mgmt_core_quote`. Other approval tables stay unchanged. `cancelled` is not blocked.

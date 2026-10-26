@@ -1,0 +1,240 @@
+Фикс след теста на 25824
+
+Тест с Test User SOM_Presales_1, Quote QT0001123, CSM/FSM Configurable Workspace.
+
+Минава:
+- таб Genehmigungen е на Quote
+- списъкът показва Genehmigungen и на други хора
+
+Не минава:
+- същият потребител отваря Genehmigung, чийто Genehmiger е друг човек, и я одобрява
+- в Activity стои, че SOM_Presales_1 е сменил Status от Angefordert на Genehmigt
+
+Формата на `sysapproval_approver` в Workspace има поле Status. Записът минава, защото някое съществуващо write правило пуска този потребител. Ново Allow write правило не го спира: стига едно Allow да мине и писането е позволено. Затова тук се слага Deny unless. То се гледа преди Allow.
+
+Бутон Approve вика `current.update()` и подминава ACL. Затова същото условие стои и в before business rule.
+
+Работи в Global. За двете ACL вдигни роля `security_admin`.
+
+Кой може да смени Status на Genehmigt или Abgelehnt, или да смени Genehmiger, върху Genehmigung за Quote:
+- потребителят, който вече е записан в Approver
+- активен негов делегат с включени approvals
+- `approval_admin`
+- `admin`
+- `system`
+
+Друг потребител отваря реда и вижда статуса. Запис на Genehmigt или Abgelehnt не минава. Смяна към `cancelled` не се спира. Genehmigung, която не е за `sn_quote_mgmt_core_quote`, не се пипа.
+
+## Стъпка 1. Script Include
+
+1. Превключи приложението на Global.
+2. `sys_script_include.list`, New.
+3. Name: `QuoteApprovalGuard`
+4. Client callable: изключено
+5. Скрипт:
+
+```javascript
+var QuoteApprovalGuard = Class.create();
+QuoteApprovalGuard.prototype = {
+    initialize: function() {},
+
+    QUOTE_TABLE: 'sn_quote_mgmt_core_quote',
+
+    isQuoteApproval: function(rec) {
+        if (!rec)
+            return false;
+        if (rec.getValue('source_table') == this.QUOTE_TABLE)
+            return true;
+        var taskId = rec.getValue('sysapproval');
+        if (!taskId)
+            return false;
+        var task = new GlideRecord('task');
+        if (!task.get(taskId))
+            return false;
+        return task.getValue('sys_class_name') == this.QUOTE_TABLE;
+    },
+
+    canDecide: function(rec) {
+        if (!rec)
+            return false;
+        if (gs.getUserName() == 'system')
+            return true;
+        if (gs.hasRole('admin') || gs.hasRole('approval_admin'))
+            return true;
+        var approverId = rec.getValue('approver');
+        if (!approverId)
+            return false;
+        if (approverId == gs.getUserID())
+            return true;
+        return this._isActiveApprovalDelegate(approverId);
+    },
+
+    canWriteState: function(rec) {
+        if (!this.isQuoteApproval(rec))
+            return true;
+        var state = rec.getValue('state');
+        if (state != 'approved' && state != 'rejected')
+            return true;
+        return this.canDecide(this._stored(rec));
+    },
+
+    canWriteApprover: function(rec) {
+        if (!this.isQuoteApproval(rec))
+            return true;
+        return this.canDecide(this._stored(rec));
+    },
+
+    blockUnauthorizedDecision: function(current, previous) {
+        if (!this.isQuoteApproval(current))
+            return;
+        if (this.canDecide(previous))
+            return;
+
+        var newState = current.getValue('state');
+        var setsOutcome = current.state.changes() && (newState == 'approved' || newState == 'rejected');
+        var movesApprover = current.approver.changes();
+        if (!setsOutcome && !movesApprover)
+            return;
+
+        gs.addErrorMessage('Nur der eingetragene Genehmiger darf diese Genehmigung genehmigen oder ablehnen.');
+        current.setAbortAction(true);
+    },
+
+    _stored: function(rec) {
+        var stored = new GlideRecord('sysapproval_approver');
+        if (stored.get(rec.getUniqueValue()))
+            return stored;
+        return rec;
+    },
+
+    _isActiveApprovalDelegate: function(approverId) {
+        var now = new GlideDateTime();
+        var del = new GlideRecord('sys_user_delegate');
+        del.addQuery('user', approverId);
+        del.addQuery('delegate', gs.getUserID());
+        del.addQuery('approvals', true);
+        var startQuery = del.addNullQuery('starts');
+        startQuery.addOrCondition('starts', '<=', now);
+        var endQuery = del.addNullQuery('ends');
+        endQuery.addOrCondition('ends', '>=', now);
+        del.setLimit(1);
+        del.query();
+        return del.hasNext();
+    },
+
+    type: 'QuoteApprovalGuard'
+};
+```
+
+6. Submit.
+
+`canWriteState` и `canWriteApprover` гледат Genehmiger, който вече е в базата. Иначе заявката първо сменя Genehmiger на себе си и после минава проверката.
+
+## Стъпка 2. Business rule
+
+1. Остань в Global.
+2. `sys_script.list`, New.
+3. Попълни:
+
+- Name: `Block quote approval by non-approver`
+- Table: `sysapproval_approver`
+- Advanced: включено
+- When: before
+- Insert: изключено
+- Update: включено
+- Delete: изключено
+- Query: изключено
+- Order: `100`
+- Filter condition: `State changes to approved` OR `State changes to rejected` OR `Approver changes`
+- Description: `Only the stored approver can approve or reject a quote approval`
+
+4. Script:
+
+```javascript
+(function executeRule(current, previous) {
+    new QuoteApprovalGuard().blockUnauthorizedDecision(current, previous);
+})(current, previous);
+```
+
+5. Submit.
+
+Това спира и полето Status, и бутона Approve / Reject. Делегатите и `approval_admin` минават. Flow, който върви като `system`, минава.
+
+## Стъпка 3. Deny unless върху state
+
+1. Вдигни `security_admin`.
+2. `sys_security_acl.list`, New.
+3. Попълни:
+
+- Type: record
+- Operation: write
+- Name: `sysapproval_approver.state`
+- Decision type: Deny unless
+- Admin overrides: включено
+- Requires role: празно
+- Advanced: включено
+- Description: `Quote approval state deny unless approver`
+
+4. Script:
+
+```javascript
+answer = new QuoteApprovalGuard().canWriteState(current);
+```
+
+5. Submit.
+
+При запис на Genehmigt или Abgelehnt от друг потребител правилото отказва, включително през Table API. При `cancelled` или при Genehmigung извън Quote връща true и не спира чуждия процес.
+
+## Стъпка 4. Deny unless върху approver
+
+1. Отново `sys_security_acl.list`, New.
+2. Попълни същите полета, със тези две разлики:
+
+- Name: `sysapproval_approver.approver`
+- Description: `Quote approval approver deny unless approver`
+
+3. Script:
+
+```javascript
+answer = new QuoteApprovalGuard().canWriteApprover(current);
+```
+
+4. Submit.
+
+Така Genehmiger не се прехвърля върху друг потребител от формата или от API. В Activity на неуспешния тест SOM_Presales_1 е писал и това поле.
+
+## Стъпка 5. Полетата на формата са само за четене
+
+ACL на `state` пуска полето, докато стойността още е Angefordert, и отказва чак при запис на Genehmigt. Без това правило падащото меню остава активно. UI policy го заключва веднага за човек, който не е Genehmiger.
+
+1. `sys_ui_policy.list`, New.
+2. Попълни:
+
+- Table: `sysapproval_approver`
+- Short description: `Quote approval read-only for non-approver`
+- Conditions: `Approver is not (dynamic) Me` AND `Source table is sn_quote_mgmt_core_quote`
+- Global: включено
+- On load: включено
+- Reverse if false: включено
+- Inherit: изключено
+- Order: `100`
+
+3. Save.
+4. В UI Policy Actions, New, два пъти:
+
+- Field name: `state`, Read only: включено
+- Field name: `approver`, Read only: включено
+
+5. Submit на двете actions.
+
+Когато влезе самия Genehmiger, Reverse if false маха заключването и той пак сменя Status. Делегат не е в полето Approver, затова падащото меню за него стои заключено. Той минава през бутона Approve, а business rule го пуска.
+
+## Стъпка 6. Проверка
+
+1. Излез и влез като Test User SOM_Presales_1. Иначе формата държи старите права.
+2. Отвори QT0001123, таб Genehmigungen. Редовете на другите хора още се виждат.
+3. Отвори ред, чийто Genehmiger не е SOM_Presales_1 и Status е Angefordert.
+4. Status и Genehmiger са сиви. Не се записват като Genehmigt.
+5. Ако формата все пак прати записа, излиза `Nur der eingetragene Genehmiger darf diese Genehmigung genehmigen oder ablehnen.` и Status остава Angefordert.
+6. Влез с потребителя от Genehmiger. Същият ред се одобрява или отказва. В таба редът остава, със сменени Status и час.
+7. Отвори Genehmigung, която не е към Quote. Там Status се държи както преди този фикс.

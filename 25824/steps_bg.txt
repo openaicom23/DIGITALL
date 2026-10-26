@@ -157,7 +157,7 @@ if (!quote.next()) {
 Ако в стъпка 1 ползваш `document_id`, смени първия ред с `current.getValue('document_id')` и добави проверка `current.getValue('source_table') == 'sn_quote_mgmt_core_quote'`.
 
 4. Submit.
-5. Не прави write ACL. Одобряването и отказът остават на потребителя в полето `approver`.
+5. Не прави Allow write ACL. Такова правило пуска писане и на потребител, който не е approver. Ако от формата в Workspace друг потребител смени Status на Genehmigt, направи записите от `25824/steps_fix_bg.txt`.
 
 Като KAM отвори Quote пак. Трябва да вижда редовете, включително отказаните.
 
@@ -167,6 +167,7 @@ if (!quote.next()) {
 2. Бутоните са съществуващите **Approve** и **Reject** (на немски Genehmigen / Ablehnen).
 3. Те се показват, когато `state` е `requested` и влезлият потребител е `approver` на този ред.
 4. KAM, който не е approver, отваря реда и вижда статуса, но не одобрява чужда Genehmigung. За теста влез с потребителя от колоната Approver.
+5. Формата в CSM/FSM Configurable Workspace показва Status като поле. Ако това поле се записва от потребител, който не е Genehmiger, бутонът Approve не е единственият път. Спри го със записите от `25824/steps_fix_bg.txt`.
 
 Ако този потребител е approver, статусът е Angefordert, а бутоните ги няма:
 
