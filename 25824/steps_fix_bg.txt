@@ -158,7 +158,7 @@ QuoteApprovalGuard.prototype = {
 
 5. Submit.
 
-Това спира и полето Status, и бутона Approve / Reject. Делегатите и `approval_admin` минават. Flow, който върви като `system`, минава.
+Това спира записа на Genehmigt и Abgelehnt. Бутоните Genehmigen и Ablehnen остават на формата, докато условието им не се смени в стъпка 7. Делегатите и `approval_admin` минават. Flow, който върви като `system`, минава.
 
 ## Стъпка 3. Deny unless върху state
 
@@ -262,7 +262,49 @@ ACL на `state` пуска полето, докато стойността ощ
 1. Излез и влез като Test User SOM_Presales_1. Иначе формата държи старите права.
 2. Отвори QT0001123, таб Genehmigungen. Редовете на другите хора още се виждат.
 3. Отвори ред, чийто Genehmiger не е SOM_Presales_1 и Status е Angefordert.
-4. Status и Genehmiger са сиви. Не се записват като Genehmigt.
+4. Status и Genehmiger са сиви. Бутоните Genehmigen и Ablehnen ги няма.
 5. Ако формата все пак прати записа, излиза `Nur der eingetragene Genehmiger darf diese Genehmigung genehmigen oder ablehnen.` и Status остава Angefordert.
 6. Влез с потребителя от Genehmiger. Същият ред се одобрява или отказва. В таба редът остава, със сменени Status и час.
 7. Отвори Genehmigung, която не е към Quote. Там Status се държи както преди този фикс.
+8. Влез с потребител, който има роля `approval_admin` и не е Genehmiger на реда. Бутоните Genehmigen и Ablehnen са на формата.
+
+## Стъпка 7. Бутоните Genehmigen и Ablehnen
+
+Ролята е `approval_admin`, не `approver_admin`.
+
+Бутоните в CSM/FSM Configurable Workspace са UI actions Approve и Reject. Условието им в момента пуска бутона на всеки, щом Status е Angefordert. Затова стоят и без `approval_admin`, и без да си Genehmiger. Business rule-ът ги спира чак при натискане.
+
+Показват се, когато Status е Angefordert и `QuoteApprovalGuard` пуска потребителя: той е Genehmiger, активен делегат, `approval_admin` или `admin`. На Genehmigung извън Quote условието остава както е било.
+
+Потребител с роля `admin` вижда бутоните и когато не е Genehmiger. Проверката е с Test User SOM_Presales_1, не с admin.
+
+1. Приложението е Global.
+2. `sys_ui_action.list`
+3. Филтър: Table is `sysapproval_approver`, Active is true, Name is `Approve` OR Name is `Reject`.
+4. Отвори всеки ред. В Condition сложи:
+
+```javascript
+current.state == 'requested' && (!new QuoteApprovalGuard().isQuoteApproval(current) || new QuoteApprovalGuard().canDecide(current))
+```
+
+5. Update. Не пипай Script. Там е самото одобрение и отказ.
+6. Ако има няколко Approve или няколко Reject, същото Condition на всеки, който е Form button.
+
+Ако след презареждане бутоните още стоят за SOM_Presales_1, лентата ги взема от Declarative Action, не от UI action.
+
+1. `sys_declarative_action_assignment.list`
+2. Филтър: Table is `sysapproval_approver`.
+3. Отвори редовете с етикет Approve, Reject, Genehmigen или Ablehnen.
+4. В Script condition:
+
+```javascript
+(function() {
+    if (!new QuoteApprovalGuard().isQuoteApproval(current))
+        return true;
+    return new QuoteApprovalGuard().canDecide(current);
+})();
+```
+
+5. Update.
+
+Презареди формата като SOM_Presales_1. Genehmigen и Ablehnen ги няма. Като Daniel Hinchev, докато Status е Angefordert, двата бутона са там.
