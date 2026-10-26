@@ -158,7 +158,7 @@ QuoteApprovalGuard.prototype = {
 
 5. Submit.
 
-Това спира записа на Genehmigt и Abgelehnt. Бутоните Genehmigen и Ablehnen остават на формата, докато условието им не се смени в стъпка 7. Делегатите и `approval_admin` минават. Flow, който върви като `system`, минава.
+Това спира записа на Genehmigt и Abgelehnt. Бутоните Genehmigen и Ablehnen на формата се скриват в стъпка 7. Делегатите и `approval_admin` минават. Flow, който върви като `system`, минава.
 
 ## Стъпка 3. Deny unless върху state
 
@@ -268,43 +268,84 @@ ACL на `state` пуска полето, докато стойността ощ
 7. Отвори Genehmigung, която не е към Quote. Там Status се държи както преди този фикс.
 8. Влез с потребител, който има роля `approval_admin` и не е Genehmiger на реда. Бутоните Genehmigen и Ablehnen са на формата.
 
-## Стъпка 7. Бутоните Genehmigen и Ablehnen
+## Стъпка 7. Скрий бутоните само на тази форма
 
-Ролята е `approval_admin`, не `approver_admin`.
+UI policy пипа полета. Genehmigen и Ablehnen не са полета и policy не може да ги скрие.
 
-Бутоните в CSM/FSM Configurable Workspace са UI actions Approve и Reject. Условието им в момента пуска бутона на всеки, щом Status е Angefordert. Затова стоят и без `approval_admin`, и без да си Genehmiger. Business rule-ът ги спира чак при натискане.
+UI actions са много, защото списъкът съдържа и менютата на списъка. Нов бутон не маха зелените и червените. Затова тук нищо в `sys_ui_action` не се променя.
 
-Показват се, когато Status е Angefordert и `QuoteApprovalGuard` пуска потребителя: той е Genehmiger, активен делегат, `approval_admin` или `admin`. На Genehmigung извън Quote условието остава както е било.
+Скриптът върви само когато се отвори формата на `sysapproval_approver`. На списъци и на други таблици не върви. Ако редът не е Genehmigung към Quote, скриптът излиза веднага и бутоните остават както са.
 
-Потребител с роля `admin` вижда бутоните и когато не е Genehmiger. Проверката е с Test User SOM_Presales_1, не с admin.
+Ролята е `approval_admin`. Потребител с `admin` вижда бутоните и когато не е Genehmiger. Проверката е с Test User SOM_Presales_1.
+
+### 7.1 Display business rule
 
 1. Приложението е Global.
-2. `sys_ui_action.list`
-3. Филтър: Table is `sysapproval_approver`, Active is true, Name is `Approve` OR Name is `Reject`.
-4. Отвори всеки ред. В Condition сложи:
+2. `sys_script.list`, New.
+3. Попълни:
+
+- Name: `Quote approval button scratchpad`
+- Table: `sysapproval_approver`
+- Advanced: включено
+- When: display
+- Order: `100`
+
+4. Script:
 
 ```javascript
-current.state == 'requested' && (!new QuoteApprovalGuard().isQuoteApproval(current) || new QuoteApprovalGuard().canDecide(current))
+(function executeRule(current, previous) {
+    var guard = new QuoteApprovalGuard();
+    g_scratchpad.quoteApproval = guard.isQuoteApproval(current) ? 'true' : 'false';
+    g_scratchpad.quoteApprovalCanDecide = guard.canDecide(current) ? 'true' : 'false';
+})(current, previous);
 ```
 
-5. Update. Не пипай Script. Там е самото одобрение и отказ.
-6. Ако има няколко Approve или няколко Reject, същото Condition на всеки, който е Form button.
+5. Submit.
 
-Ако след презареждане бутоните още стоят за SOM_Presales_1, лентата ги взема от Declarative Action, не от UI action.
+### 7.2 Client script
 
-1. `sys_declarative_action_assignment.list`
-2. Филтър: Table is `sysapproval_approver`.
-3. Отвори редовете с етикет Approve, Reject, Genehmigen или Ablehnen.
-4. В Script condition:
+1. `sys_script_client.list`, New.
+2. Попълни:
+
+- Name: `Hide quote approval buttons`
+- Table: `sysapproval_approver`
+- UI type: All
+- Type: onLoad
+- Global: включено
+- View: празно
+- Inherited: изключено
+- Active: включено
+
+3. Script:
 
 ```javascript
-(function() {
-    if (!new QuoteApprovalGuard().isQuoteApproval(current))
-        return true;
-    return new QuoteApprovalGuard().canDecide(current);
-})();
+function onLoad() {
+    var isQuote = g_scratchpad.quoteApproval;
+    if (isQuote === undefined || isQuote === null)
+        isQuote = g_form.getValue('source_table') === 'sn_quote_mgmt_core_quote' ? 'true' : 'false';
+    if (isQuote !== 'true')
+        return;
+
+    var allowed = g_scratchpad.quoteApprovalCanDecide;
+    if (allowed === undefined || allowed === null) {
+        allowed = (g_form.getValue('approver') === g_user.userID || g_user.hasRole('approval_admin') || g_user.hasRole('admin')) ? 'true' : 'false';
+    }
+    if (allowed === 'true')
+        return;
+
+    g_form.setActionVisible('approve', false);
+    g_form.setActionVisible('reject', false);
+}
 ```
 
-5. Update.
+4. Submit.
 
-Презареди формата като SOM_Presales_1. Genehmigen и Ablehnen ги няма. Като Daniel Hinchev, докато Status е Angefordert, двата бутона са там.
+`approve` и `reject` са Action name на двата бутона. Ако на формата пак се виждат, отвори единия Form button Approve и прочети полето Action name. Сложи тази стойност вместо `'approve'`. Същото за Reject и `'reject'`. Ако Action name е празно, остави `'approve'` и `'reject'`.
+
+Презареди формата като SOM_Presales_1. Genehmigen и Ablehnen ги няма. Speichern остава. Като Daniel Hinchev, докато Status е Angefordert, двата бутона са там.
+
+Ако конзолата каже, че `setActionVisible` липсва, тази версия на Workspace не крие бутони от формата. Тогава долепи условието само на двата реда, не на целия списък: Form button is true, Form style is Primary за Approve и Destructive за Reject. В края на съществуващото Condition:
+
+```javascript
+&& (!new QuoteApprovalGuard().isQuoteApproval(current) || new QuoteApprovalGuard().canDecide(current))
+```
