@@ -113,13 +113,23 @@ QuoteApprovalGuard.prototype = {
         del.addQuery('user', approverId);
         del.addQuery('delegate', gs.getUserID());
         del.addQuery('approvals', true);
-        var startQuery = del.addNullQuery('starts');
-        startQuery.addOrCondition('starts', '<=', now);
-        var endQuery = del.addNullQuery('ends');
-        endQuery.addOrCondition('ends', '>=', now);
-        del.setLimit(1);
         del.query();
-        return del.hasNext();
+        while (del.next()) {
+            var starts = del.getValue('starts');
+            if (starts) {
+                var startAt = new GlideDateTime(starts);
+                if (startAt.compareTo(now) > 0)
+                    continue;
+            }
+            var ends = del.getValue('ends');
+            if (ends) {
+                var endAt = new GlideDateTime(ends);
+                if (endAt.compareTo(now) < 0)
+                    continue;
+            }
+            return true;
+        }
+        return false;
     },
 
     type: 'QuoteApprovalGuard'
@@ -129,6 +139,8 @@ QuoteApprovalGuard.prototype = {
 6. Submit.
 
 `canWriteState` и `canWriteApprover` гледат Genehmiger, който вече е в базата. Иначе заявката първо сменя Genehmiger на себе си и после минава проверката.
+
+Датите на делегирането се гледат в цикъла, не с `addOrCondition`. В encoded query `^OR` цепи цялата заявка: `(user AND delegate AND approvals AND starts празно) OR starts<=сега OR ends>=сега`. Ако в `sys_user_delegate` има ред с крайна дата напред, `hasNext()` е true за всеки потребител и той минава като делегат. Затова потребител без `approval_admin`, който не е Genehmiger, записва Abgelehnt.
 
 ## Стъпка 2. Business rule
 
@@ -145,7 +157,7 @@ QuoteApprovalGuard.prototype = {
 - Delete: изключено
 - Query: изключено
 - Order: `100`
-- Filter condition: `State changes to approved` OR `State changes to rejected` OR `Approver changes`
+- Filter condition: празно. Условието е в скрипта. Ако в builder-а трите реда останат с AND, правилото не тръгва и Abgelehnt се записва.
 - Description: `Only the stored approver can approve or reject a quote approval`
 
 4. Script:
@@ -344,7 +356,15 @@ function onLoad() {
 
 Презареди формата като SOM_Presales_1. Genehmigen и Ablehnen ги няма. Speichern остава. Като Daniel Hinchev, докато Status е Angefordert, двата бутона са там.
 
-Ако конзолата каже, че `setActionVisible` липсва, тази версия на Workspace не крие бутони от формата. Тогава долепи условието само на двата реда, не на целия списък: Form button is true, Form style is Primary за Approve и Destructive за Reject. В края на съществуващото Condition:
+`g_form.setActionVisible` не крие бутоните в CSM/FSM Configurable Workspace. Condition на UI action също не ги крие там. Видимостта в Workspace е Script condition на `sys_declarative_action_assignment` за същия бутон. Долепи го там, не на целия списък с UI actions:
+
+```javascript
+current.state == 'requested' && (!new QuoteApprovalGuard().isQuoteApproval(current) || new QuoteApprovalGuard().canDecide(current))
+```
+
+Ако бутонът пак се вижда, business rule-ът пак спира записа. След поправката на делегирането Ablehnen от SOM_Presales_1 не сменя Status.
+
+За класическата форма долепи същото в края на Condition само на двата Form button реда: Form button is true, Form style is Primary за Approve и Destructive за Reject.
 
 ```javascript
 && (!new QuoteApprovalGuard().isQuoteApproval(current) || new QuoteApprovalGuard().canDecide(current))
