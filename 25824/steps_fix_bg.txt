@@ -16,14 +16,15 @@
 
 Работи в Global. За двете ACL вдигни роля `security_admin`.
 
+KAM вижда това, което иска сторито: таб Genehmigungen, всеки ред по Quote (отворен, одобрен, отказан), Status и часа. За това не му трябва `approval_admin` или `sn_quote_mgmt_core.quote_admin`. Ако списъкът за него е празен, а за admin не е, четенето е в стъпка 5 на `25824/steps_bg.txt`. Това ACL пуска четене и не пуска одобрение.
+
 Кой може да смени Status на Genehmigt или Abgelehnt, или да смени Genehmiger, върху Genehmigung за Quote:
 - потребителят, който вече е записан в Approver
 - активен негов делегат с включени approvals
-- `approval_admin`
 - `admin`
 - `system`
 
-Друг потребител отваря реда и вижда статуса. Запис на Genehmigt или Abgelehnt не минава. Смяна към `cancelled` не се спира. Genehmigung, която не е за `sn_quote_mgmt_core_quote`, не се пипа.
+KAM, който не е този Genehmiger, отваря реда и вижда статуса. Запис на Genehmigt или Abgelehnt не минава. Същото важи за потребител с `sn_quote_mgmt_core.quote_admin` или `approval_admin`, ако не е записан в Approver. Смяна към `cancelled` не се спира. Genehmigung, която не е за `sn_quote_mgmt_core_quote`, не се пипа.
 
 ## Стъпка 1. Script Include
 
@@ -59,7 +60,7 @@ QuoteApprovalGuard.prototype = {
             return false;
         if (gs.getUserName() == 'system')
             return true;
-        if (gs.hasRole('admin') || gs.hasRole('approval_admin'))
+        if (gs.hasRole('admin'))
             return true;
         var approverId = rec.getValue('approver');
         if (!approverId)
@@ -140,7 +141,7 @@ QuoteApprovalGuard.prototype = {
 
 `canWriteState` и `canWriteApprover` гледат Genehmiger, който вече е в базата. Иначе заявката първо сменя Genehmiger на себе си и после минава проверката.
 
-Датите на делегирането се гледат в цикъла, не с `addOrCondition`. В encoded query `^OR` цепи цялата заявка: `(user AND delegate AND approvals AND starts празно) OR starts<=сега OR ends>=сега`. Ако в `sys_user_delegate` има ред с крайна дата напред, `hasNext()` е true за всеки потребител и той минава като делегат. Затова потребител без `approval_admin`, който не е Genehmiger, записва Abgelehnt.
+Датите на делегирането се гледат в цикъла, не с `addOrCondition`. В encoded query `^OR` цепи цялата заявка: `(user AND delegate AND approvals AND starts празно) OR starts<=сега OR ends>=сега`. Ако в `sys_user_delegate` има ред с крайна дата напред, `hasNext()` е true за всеки потребител и той минава като делегат. Затова потребител, който не е Genehmiger, записва Abgelehnt.
 
 ## Стъпка 2. Business rule
 
@@ -170,7 +171,7 @@ QuoteApprovalGuard.prototype = {
 
 5. Submit.
 
-Това спира записа на Genehmigt и Abgelehnt. Бутоните Genehmigen и Ablehnen на формата се скриват в стъпка 7. Делегатите и `approval_admin` минават. Flow, който върви като `system`, минава.
+Това спира записа на Genehmigt и Abgelehnt. Бутоните Genehmigen и Ablehnen на формата се скриват в стъпка 7. Делегатът на записания Genehmiger минава. Flow, който върви като `system`, минава. `quote_admin` и `approval_admin` не минават, ако потребителят не е Genehmiger.
 
 ## Стъпка 3. Deny unless върху state
 
@@ -278,7 +279,7 @@ ACL на `state` пуска полето, докато стойността ощ
 5. Ако формата все пак прати записа, излиза `Nur der eingetragene Genehmiger darf diese Genehmigung genehmigen oder ablehnen.` и Status остава Angefordert.
 6. Влез с потребителя от Genehmiger. Същият ред се одобрява или отказва. В таба редът остава, със сменени Status и час.
 7. Отвори Genehmigung, която не е към Quote. Там Status се държи както преди този фикс.
-8. Влез с потребител, който има роля `approval_admin` и не е Genehmiger на реда. Бутоните Genehmigen и Ablehnen са на формата.
+8. Влез с потребител, който има `sn_quote_mgmt_core.quote_admin` или `approval_admin` и не е Genehmiger на реда. Бутоните Genehmigen и Ablehnen ги няма. Запис на Genehmigt или Abgelehnt не минава. Табът и редовете за него остават видими.
 
 ## Стъпка 7. Скрий бутоните само на тази форма
 
@@ -288,7 +289,7 @@ UI actions са много, защото списъкът съдържа и ме
 
 Скриптът върви само когато се отвори формата на `sysapproval_approver`. На списъци и на други таблици не върви. Ако редът не е Genehmigung към Quote, скриптът излиза веднага и бутоните остават както са.
 
-Ролята е `approval_admin`. Потребител с `admin` вижда бутоните и когато не е Genehmiger. Проверката е с Test User SOM_Presales_1.
+Бутоните остават за записания Genehmiger и за негов активен делегат. Потребител с `admin` ги вижда и когато не е Genehmiger. KAM, `quote_admin` и `approval_admin` не ги виждат на чужд ред. Проверката е с Test User SOM_Presales_1.
 
 ### 7.1 Display business rule
 
@@ -340,7 +341,7 @@ function onLoad() {
 
     var allowed = g_scratchpad.quoteApprovalCanDecide;
     if (allowed === undefined || allowed === null) {
-        allowed = (g_form.getValue('approver') === g_user.userID || g_user.hasRole('approval_admin') || g_user.hasRole('admin')) ? 'true' : 'false';
+        allowed = (g_form.getValue('approver') === g_user.userID || g_user.hasRole('admin')) ? 'true' : 'false';
     }
     if (allowed === 'true')
         return;
