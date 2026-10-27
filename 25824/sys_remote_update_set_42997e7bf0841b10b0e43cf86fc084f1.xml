@@ -1,0 +1,445 @@
+<?xml version="1.0" encoding="UTF-8"?><unload unload_date="2026-10-27 14:31:34">
+<sys_remote_update_set action="INSERT_OR_UPDATE">
+<application display_value="Global">global</application>
+<application_name>Global</application_name>
+<application_scope>global</application_scope>
+<application_version/>
+<collisions/>
+<commit_date/>
+<deleted/>
+<description/>
+<inserted/>
+<name>DIGITALL-SOM-STRY0025892</name>
+<origin_sys_id/>
+<parent display_value=""/>
+<release_date/>
+<remote_base_update_set display_value=""/>
+<remote_parent_id/>
+<remote_sys_id>e1007ca7f0c89710b0e43cf86fc0846f</remote_sys_id>
+<state>loaded</state>
+<summary/>
+<sys_class_name>sys_remote_update_set</sys_class_name>
+<sys_created_by>IZEAE65</sys_created_by>
+<sys_created_on>2026-10-27 14:31:33</sys_created_on>
+<sys_id>42997e7bf0841b10b0e43cf86fc084f1</sys_id>
+<sys_mod_count>0</sys_mod_count>
+<sys_updated_by>IZEAE65</sys_updated_by>
+<sys_updated_on>2026-10-27 14:31:33</sys_updated_on>
+<update_set display_value=""/>
+<update_source display_value=""/>
+<updated/>
+</sys_remote_update_set>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>INSERT_OR_UPDATE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sys_ui_policy_action_90328923f04c9710b0e43cf86fc0842c</name>
+<payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_ui_policy_action"><sys_ui_policy_action action="INSERT_OR_UPDATE"><cleared>false</cleared><disabled>true</disabled><field>state</field><field_message/><field_message_type>none</field_message_type><mandatory>ignore</mandatory><sys_class_name>sys_ui_policy_action</sys_class_name><sys_created_by>IZEAE65</sys_created_by><sys_created_on>2026-10-26 11:12:31</sys_created_on><sys_id>90328923f04c9710b0e43cf86fc0842c</sys_id><sys_mod_count>0</sys_mod_count><sys_name>state</sys_name><sys_package display_value="Global" source="global">global</sys_package><sys_policy/><sys_scope display_value="Global">global</sys_scope><sys_update_name>sys_ui_policy_action_90328923f04c9710b0e43cf86fc0842c</sys_update_name><sys_updated_by>IZEAE65</sys_updated_by><sys_updated_on>2026-10-26 11:12:31</sys_updated_on><table>sysapproval_approver</table><ui_policy display_value="Quote approval read-only">6d7e7cabf00c9710b0e43cf86fc08464</ui_policy><value/><value_action>ignore</value_action><visible>ignore</visible></sys_ui_policy_action></record_update>]]></payload>
+<payload_hash>-1809073808</payload_hash>
+<remote_update_set display_value="DIGITALL-SOM-STRY0025892">42997e7bf0841b10b0e43cf86fc084f1</remote_update_set>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>IZEAE65</sys_created_by>
+<sys_created_on>2026-10-27 14:31:33</sys_created_on>
+<sys_id>0a997e7bf0841b10b0e43cf86fc084f4</sys_id>
+<sys_mod_count>0</sys_mod_count>
+<sys_recorded_at>1a177e975c60000001</sys_recorded_at>
+<sys_updated_by>IZEAE65</sys_updated_by>
+<sys_updated_on>2026-10-27 14:31:33</sys_updated_on>
+<table>sysapproval_approver</table>
+<target_name>state</target_name>
+<type>UI Policy Action</type>
+<update_domain>global</update_domain>
+<update_guid>f4720d237a4c971020cb5f1ed8e6a86f</update_guid>
+<update_guid_history>f4720d237a4c971020cb5f1ed8e6a86f:-1809073808</update_guid_history>
+<update_set display_value=""/>
+<view/>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>INSERT_OR_UPDATE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sys_security_acl_9438f0a3f00c9710b0e43cf86fc08418</name>
+<payload>&lt;?xml version="1.0" encoding="UTF-8"?&gt;&lt;record_update table="sys_security_acl"&gt;&lt;sys_security_acl action="INSERT_OR_UPDATE"&gt;&lt;active&gt;true&lt;/active&gt;&lt;admin_overrides&gt;true&lt;/admin_overrides&gt;&lt;advanced&gt;true&lt;/advanced&gt;&lt;applies_to/&gt;&lt;condition/&gt;&lt;controlled_by_refs/&gt;&lt;decision_type&gt;deny&lt;/decision_type&gt;&lt;description&gt;Quote approval state deny unless approver&lt;/description&gt;&lt;local_or_existing&gt;Existing&lt;/local_or_existing&gt;&lt;name&gt;sysapproval_approver.state&lt;/name&gt;&lt;operation display_value="write"&gt;write&lt;/operation&gt;&lt;script&gt;&lt;![CDATA[answer = new QuoteApprovalGuard().canWriteState(current);]]&gt;&lt;/script&gt;&lt;security_attribute/&gt;&lt;sys_class_name&gt;sys_security_acl&lt;/sys_class_name&gt;&lt;sys_created_by&gt;IZEAE65&lt;/sys_created_by&gt;&lt;sys_created_on&gt;2026-10-26 10:34:07&lt;/sys_created_on&gt;&lt;sys_id&gt;9438f0a3f00c9710b0e43cf86fc08418&lt;/sys_id&gt;&lt;sys_mod_count&gt;0&lt;/sys_mod_count&gt;&lt;sys_name&gt;sysapproval_approver.state&lt;/sys_name&gt;&lt;sys_package display_value="Global" source="global"&gt;global&lt;/sys_package&gt;&lt;sys_policy/&gt;&lt;sys_scope display_value="Global"&gt;global&lt;/sys_scope&gt;&lt;sys_update_name&gt;sys_security_acl_9438f0a3f00c9710b0e43cf86fc08418&lt;/sys_update_name&gt;&lt;sys_updated_by&gt;IZEAE65&lt;/sys_updated_by&gt;&lt;sys_updated_on&gt;2026-10-26 10:34:07&lt;/sys_updated_on&gt;&lt;type display_value="record"&gt;record&lt;/type&gt;&lt;/sys_security_acl&gt;&lt;sys_es_latest_script action="INSERT_OR_UPDATE"&gt;&lt;id&gt;9438f0a3f00c9710b0e43cf86fc08418&lt;/id&gt;&lt;sys_created_by&gt;IZEAE65&lt;/sys_created_by&gt;&lt;sys_created_on&gt;2026-10-26 10:33:49&lt;/sys_created_on&gt;&lt;sys_id&gt;0e99b4e3f00c9710b0e43cf86fc084df&lt;/sys_id&gt;&lt;sys_mod_count&gt;0&lt;/sys_mod_count&gt;&lt;sys_updated_by&gt;IZEAE65&lt;/sys_updated_by&gt;&lt;sys_updated_on&gt;2026-10-26 10:33:49&lt;/sys_updated_on&gt;&lt;table&gt;sys_security_acl&lt;/table&gt;&lt;use_es_latest&gt;true&lt;/use_es_latest&gt;&lt;/sys_es_latest_script&gt;&lt;/record_update&gt;</payload>
+<payload_hash>1486222947</payload_hash>
+<remote_update_set display_value="DIGITALL-SOM-STRY0025892">42997e7bf0841b10b0e43cf86fc084f1</remote_update_set>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>IZEAE65</sys_created_by>
+<sys_created_on>2026-10-27 14:31:33</sys_created_on>
+<sys_id>0e997e7bf0841b10b0e43cf86fc084f2</sys_id>
+<sys_mod_count>0</sys_mod_count>
+<sys_recorded_at>1a177c650dc0000001</sys_recorded_at>
+<sys_updated_by>IZEAE65</sys_updated_by>
+<sys_updated_on>2026-10-27 14:31:33</sys_updated_on>
+<table>sysapproval_approver.state</table>
+<target_name>sysapproval_approver.state</target_name>
+<type>Access Control</type>
+<update_domain>global</update_domain>
+<update_guid>26a978e3ab0c9710263b891159bd8e1a</update_guid>
+<update_guid_history>26a978e3ab0c9710263b891159bd8e1a:1486222947</update_guid_history>
+<update_set display_value=""/>
+<view/>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>INSERT_OR_UPDATE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sys_ui_policy_action_3f834d63f04c9710b0e43cf86fc084e3</name>
+<payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_ui_policy_action"><sys_ui_policy_action action="INSERT_OR_UPDATE"><cleared>false</cleared><disabled>false</disabled><field>state</field><field_message/><field_message_type>none</field_message_type><mandatory>ignore</mandatory><sys_class_name>sys_ui_policy_action</sys_class_name><sys_created_by>IZEAE65</sys_created_by><sys_created_on>2026-10-26 11:17:46</sys_created_on><sys_id>3f834d63f04c9710b0e43cf86fc084e3</sys_id><sys_mod_count>0</sys_mod_count><sys_name>state</sys_name><sys_package display_value="Global" source="global">global</sys_package><sys_policy/><sys_scope display_value="Global">global</sys_scope><sys_update_name>sys_ui_policy_action_3f834d63f04c9710b0e43cf86fc084e3</sys_update_name><sys_updated_by>IZEAE65</sys_updated_by><sys_updated_on>2026-10-26 11:17:46</sys_updated_on><table>sysapproval_approver</table><ui_policy display_value="Quote approval editable for approver">b513c563f04c9710b0e43cf86fc084a1</ui_policy><value/><value_action>ignore</value_action><visible>ignore</visible></sys_ui_policy_action></record_update>]]></payload>
+<payload_hash>-108440109</payload_hash>
+<remote_update_set display_value="DIGITALL-SOM-STRY0025892">42997e7bf0841b10b0e43cf86fc084f1</remote_update_set>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>IZEAE65</sys_created_by>
+<sys_created_on>2026-10-27 14:31:33</sys_created_on>
+<sys_id>42997e7bf0841b10b0e43cf86fc084f4</sys_id>
+<sys_mod_count>0</sys_mod_count>
+<sys_recorded_at>1a177ee45630000001</sys_recorded_at>
+<sys_updated_by>IZEAE65</sys_updated_by>
+<sys_updated_on>2026-10-27 14:31:33</sys_updated_on>
+<table>sysapproval_approver</table>
+<target_name>state</target_name>
+<type>UI Policy Action</type>
+<update_domain>global</update_domain>
+<update_guid>7da38d637f4c971038883b7c72aa6aeb</update_guid>
+<update_guid_history>7da38d637f4c971038883b7c72aa6aeb:-108440109</update_guid_history>
+<update_set display_value=""/>
+<view/>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>INSERT_OR_UPDATE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sys_security_acl_31b2167bf0c01b10b0e43cf86fc084d8</name>
+<payload>&lt;?xml version="1.0" encoding="UTF-8"?&gt;&lt;record_update table="sys_security_acl"&gt;&lt;sys_security_acl action="INSERT_OR_UPDATE"&gt;&lt;active&gt;true&lt;/active&gt;&lt;admin_overrides&gt;true&lt;/admin_overrides&gt;&lt;advanced&gt;true&lt;/advanced&gt;&lt;applies_to/&gt;&lt;condition/&gt;&lt;controlled_by_refs/&gt;&lt;decision_type&gt;deny&lt;/decision_type&gt;&lt;description&gt;Quote approval read deny unless quote reader&lt;/description&gt;&lt;local_or_existing&gt;Existing&lt;/local_or_existing&gt;&lt;name&gt;sysapproval_approver&lt;/name&gt;&lt;operation display_value="read"&gt;read&lt;/operation&gt;&lt;script&gt;&lt;![CDATA[answer = new QuoteApprovalGuard().canRead(current);]]&gt;&lt;/script&gt;&lt;security_attribute/&gt;&lt;sys_class_name&gt;sys_security_acl&lt;/sys_class_name&gt;&lt;sys_created_by&gt;IZEAE65&lt;/sys_created_by&gt;&lt;sys_created_on&gt;2026-10-27 11:48:23&lt;/sys_created_on&gt;&lt;sys_id&gt;31b2167bf0c01b10b0e43cf86fc084d8&lt;/sys_id&gt;&lt;sys_mod_count&gt;0&lt;/sys_mod_count&gt;&lt;sys_name&gt;sysapproval_approver&lt;/sys_name&gt;&lt;sys_package display_value="Global" source="global"&gt;global&lt;/sys_package&gt;&lt;sys_policy/&gt;&lt;sys_scope display_value="Global"&gt;global&lt;/sys_scope&gt;&lt;sys_update_name&gt;sys_security_acl_31b2167bf0c01b10b0e43cf86fc084d8&lt;/sys_update_name&gt;&lt;sys_updated_by&gt;IZEAE65&lt;/sys_updated_by&gt;&lt;sys_updated_on&gt;2026-10-27 11:48:23&lt;/sys_updated_on&gt;&lt;type display_value="record"&gt;record&lt;/type&gt;&lt;/sys_security_acl&gt;&lt;sys_es_latest_script action="INSERT_OR_UPDATE"&gt;&lt;id&gt;31b2167bf0c01b10b0e43cf86fc084d8&lt;/id&gt;&lt;sys_created_by&gt;IZEAE65&lt;/sys_created_by&gt;&lt;sys_created_on&gt;2026-10-27 11:48:12&lt;/sys_created_on&gt;&lt;sys_id&gt;15349efbf0c01b10b0e43cf86fc084eb&lt;/sys_id&gt;&lt;sys_mod_count&gt;0&lt;/sys_mod_count&gt;&lt;sys_updated_by&gt;IZEAE65&lt;/sys_updated_by&gt;&lt;sys_updated_on&gt;2026-10-27 11:48:12&lt;/sys_updated_on&gt;&lt;table&gt;sys_security_acl&lt;/table&gt;&lt;use_es_latest&gt;true&lt;/use_es_latest&gt;&lt;/sys_es_latest_script&gt;&lt;/record_update&gt;</payload>
+<payload_hash>-186388396</payload_hash>
+<remote_update_set display_value="DIGITALL-SOM-STRY0025892">42997e7bf0841b10b0e43cf86fc084f1</remote_update_set>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>IZEAE65</sys_created_by>
+<sys_created_on>2026-10-27 14:31:33</sys_created_on>
+<sys_id>46997e7bf0841b10b0e43cf86fc084f2</sys_id>
+<sys_mod_count>0</sys_mod_count>
+<sys_recorded_at>1a17d30ac680000001</sys_recorded_at>
+<sys_updated_by>IZEAE65</sys_updated_by>
+<sys_updated_on>2026-10-27 14:31:33</sys_updated_on>
+<table>sysapproval_approver</table>
+<target_name>sysapproval_approver</target_name>
+<type>Access Control</type>
+<update_domain>global</update_domain>
+<update_guid>1844defb75c01b10b5dfe9a07a40faa0</update_guid>
+<update_guid_history>1844defb75c01b10b5dfe9a07a40faa0:-186388396</update_guid_history>
+<update_set display_value=""/>
+<view/>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>INSERT_OR_UPDATE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sys_ui_policy_b513c563f04c9710b0e43cf86fc084a1</name>
+<payload>&lt;?xml version="1.0" encoding="UTF-8"?&gt;&lt;record_update sys_domain="global" table="sys_ui_policy"&gt;&lt;sys_ui_policy action="INSERT_OR_UPDATE"&gt;&lt;active&gt;true&lt;/active&gt;&lt;conditions table="sysapproval_approver"&gt;approverDYNAMIC90d1921e5f510100a9ad2572f2b477fe^source_table=sn_quote_mgmt_core_quote^EQ&lt;item endquery="false" field="approver" goto="false" newquery="false" operator="DYNAMIC" or="false" value="90d1921e5f510100a9ad2572f2b477fe"/&gt;&lt;item endquery="false" field="source_table" goto="false" newquery="false" operator="=" or="false" value="sn_quote_mgmt_core_quote"/&gt;&lt;item endquery="true" field="" goto="false" newquery="false" operator="=" or="false" value=""/&gt;&lt;/conditions&gt;&lt;description/&gt;&lt;global&gt;true&lt;/global&gt;&lt;inherit&gt;false&lt;/inherit&gt;&lt;isolate_script&gt;true&lt;/isolate_script&gt;&lt;model_id/&gt;&lt;model_table/&gt;&lt;on_load&gt;true&lt;/on_load&gt;&lt;order&gt;200&lt;/order&gt;&lt;reverse_if_false&gt;false&lt;/reverse_if_false&gt;&lt;run_scripts&gt;false&lt;/run_scripts&gt;&lt;script_false&gt;&lt;![CDATA[function onCondition() {
+
+}]]&gt;&lt;/script_false&gt;&lt;script_true&gt;&lt;![CDATA[function onCondition() {
+
+}]]&gt;&lt;/script_true&gt;&lt;set_values/&gt;&lt;short_description&gt;Quote approval editable for approver&lt;/short_description&gt;&lt;sys_class_name&gt;sys_ui_policy&lt;/sys_class_name&gt;&lt;sys_created_by&gt;IZEAE65&lt;/sys_created_by&gt;&lt;sys_created_on&gt;2026-10-26 11:16:56&lt;/sys_created_on&gt;&lt;sys_domain&gt;global&lt;/sys_domain&gt;&lt;sys_domain_path&gt;/&lt;/sys_domain_path&gt;&lt;sys_id&gt;b513c563f04c9710b0e43cf86fc084a1&lt;/sys_id&gt;&lt;sys_mod_count&gt;2&lt;/sys_mod_count&gt;&lt;sys_name&gt;Quote approval editable for approver&lt;/sys_name&gt;&lt;sys_overrides/&gt;&lt;sys_package display_value="Global" source="global"&gt;global&lt;/sys_package&gt;&lt;sys_policy/&gt;&lt;sys_scope display_value="Global"&gt;global&lt;/sys_scope&gt;&lt;sys_update_name&gt;sys_ui_policy_b513c563f04c9710b0e43cf86fc084a1&lt;/sys_update_name&gt;&lt;sys_updated_by&gt;IZEAE65&lt;/sys_updated_by&gt;&lt;sys_updated_on&gt;2026-10-27 14:28:57&lt;/sys_updated_on&gt;&lt;table&gt;sysapproval_approver&lt;/table&gt;&lt;ui_type&gt;10&lt;/ui_type&gt;&lt;view/&gt;&lt;/sys_ui_policy&gt;&lt;/record_update&gt;</payload>
+<payload_hash>1446654881</payload_hash>
+<remote_update_set display_value="DIGITALL-SOM-STRY0025892">42997e7bf0841b10b0e43cf86fc084f1</remote_update_set>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>IZEAE65</sys_created_by>
+<sys_created_on>2026-10-27 14:31:33</sys_created_on>
+<sys_id>4e997e7bf0841b10b0e43cf86fc084f5</sys_id>
+<sys_mod_count>0</sys_mod_count>
+<sys_recorded_at>1a17dc3a8db0000001</sys_recorded_at>
+<sys_updated_by>IZEAE65</sys_updated_by>
+<sys_updated_on>2026-10-27 14:31:33</sys_updated_on>
+<table>sysapproval_approver</table>
+<target_name>Quote approval editable for approver</target_name>
+<type>UI Policy</type>
+<update_domain>global</update_domain>
+<update_guid>0409be3b59841b105b7acf068ea8a4bc</update_guid>
+<update_guid_history>0409be3b59841b105b7acf068ea8a4bc:1446654881,f88332f323841b106ece581a37c80394:2022165176,e5738563974c9710a1661bbc9b48bb76:-415378178</update_guid_history>
+<update_set display_value=""/>
+<view/>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>INSERT_OR_UPDATE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sys_ui_policy_action_d9b301a3f04c9710b0e43cf86fc084be</name>
+<payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_ui_policy_action"><sys_ui_policy_action action="INSERT_OR_UPDATE"><cleared>false</cleared><disabled>false</disabled><field>approver</field><field_message/><field_message_type>none</field_message_type><mandatory>ignore</mandatory><sys_class_name>sys_ui_policy_action</sys_class_name><sys_created_by>IZEAE65</sys_created_by><sys_created_on>2026-10-26 11:18:15</sys_created_on><sys_id>d9b301a3f04c9710b0e43cf86fc084be</sys_id><sys_mod_count>0</sys_mod_count><sys_name>approver</sys_name><sys_package display_value="Global" source="global">global</sys_package><sys_policy/><sys_scope display_value="Global">global</sys_scope><sys_update_name>sys_ui_policy_action_d9b301a3f04c9710b0e43cf86fc084be</sys_update_name><sys_updated_by>IZEAE65</sys_updated_by><sys_updated_on>2026-10-26 11:18:15</sys_updated_on><table>sysapproval_approver</table><ui_policy display_value="Quote approval editable for approver">b513c563f04c9710b0e43cf86fc084a1</ui_policy><value/><value_action>ignore</value_action><visible>ignore</visible></sys_ui_policy_action></record_update>]]></payload>
+<payload_hash>-1775434675</payload_hash>
+<remote_update_set display_value="DIGITALL-SOM-STRY0025892">42997e7bf0841b10b0e43cf86fc084f1</remote_update_set>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>IZEAE65</sys_created_by>
+<sys_created_on>2026-10-27 14:31:33</sys_created_on>
+<sys_id>86997e7bf0841b10b0e43cf86fc084f5</sys_id>
+<sys_mod_count>0</sys_mod_count>
+<sys_recorded_at>1a177eeb8590000001</sys_recorded_at>
+<sys_updated_by>IZEAE65</sys_updated_by>
+<sys_updated_on>2026-10-27 14:31:33</sys_updated_on>
+<table>sysapproval_approver</table>
+<target_name>approver</target_name>
+<type>UI Policy Action</type>
+<update_domain>global</update_domain>
+<update_guid>c1c341a3234c9710f72c0b2c2b81eb2c</update_guid>
+<update_guid_history>c1c341a3234c9710f72c0b2c2b81eb2c:-1775434675</update_guid_history>
+<update_set display_value=""/>
+<view/>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>INSERT_OR_UPDATE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sys_ui_policy_6d7e7cabf00c9710b0e43cf86fc08464</name>
+<payload>&lt;?xml version="1.0" encoding="UTF-8"?&gt;&lt;record_update sys_domain="global" table="sys_ui_policy"&gt;&lt;sys_ui_policy action="INSERT_OR_UPDATE"&gt;&lt;active&gt;true&lt;/active&gt;&lt;conditions table="sysapproval_approver"&gt;source_table=sn_quote_mgmt_core_quote^EQ&lt;item endquery="false" field="source_table" goto="false" newquery="false" operator="=" or="false" value="sn_quote_mgmt_core_quote"/&gt;&lt;item endquery="true" field="" goto="false" newquery="false" operator="=" or="false" value=""/&gt;&lt;/conditions&gt;&lt;description/&gt;&lt;global&gt;true&lt;/global&gt;&lt;inherit&gt;false&lt;/inherit&gt;&lt;isolate_script&gt;true&lt;/isolate_script&gt;&lt;model_id/&gt;&lt;model_table/&gt;&lt;on_load&gt;true&lt;/on_load&gt;&lt;order&gt;100&lt;/order&gt;&lt;reverse_if_false&gt;false&lt;/reverse_if_false&gt;&lt;run_scripts&gt;false&lt;/run_scripts&gt;&lt;script_false&gt;&lt;![CDATA[function onCondition() {
+
+}]]&gt;&lt;/script_false&gt;&lt;script_true&gt;&lt;![CDATA[function onCondition() {
+
+}]]&gt;&lt;/script_true&gt;&lt;set_values/&gt;&lt;short_description&gt;Quote approval read-only&lt;/short_description&gt;&lt;sys_class_name&gt;sys_ui_policy&lt;/sys_class_name&gt;&lt;sys_created_by&gt;IZEAE65&lt;/sys_created_by&gt;&lt;sys_created_on&gt;2026-10-26 11:10:34&lt;/sys_created_on&gt;&lt;sys_domain&gt;global&lt;/sys_domain&gt;&lt;sys_domain_path&gt;/&lt;/sys_domain_path&gt;&lt;sys_id&gt;6d7e7cabf00c9710b0e43cf86fc08464&lt;/sys_id&gt;&lt;sys_mod_count&gt;1&lt;/sys_mod_count&gt;&lt;sys_name&gt;Quote approval read-only&lt;/sys_name&gt;&lt;sys_overrides/&gt;&lt;sys_package display_value="Global" source="global"&gt;global&lt;/sys_package&gt;&lt;sys_policy/&gt;&lt;sys_scope display_value="Global"&gt;global&lt;/sys_scope&gt;&lt;sys_update_name&gt;sys_ui_policy_6d7e7cabf00c9710b0e43cf86fc08464&lt;/sys_update_name&gt;&lt;sys_updated_by&gt;IZEAE65&lt;/sys_updated_by&gt;&lt;sys_updated_on&gt;2026-10-27 14:29:14&lt;/sys_updated_on&gt;&lt;table&gt;sysapproval_approver&lt;/table&gt;&lt;ui_type&gt;10&lt;/ui_type&gt;&lt;view/&gt;&lt;/sys_ui_policy&gt;&lt;/record_update&gt;</payload>
+<payload_hash>-1690302777</payload_hash>
+<remote_update_set display_value="DIGITALL-SOM-STRY0025892">42997e7bf0841b10b0e43cf86fc084f1</remote_update_set>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>IZEAE65</sys_created_by>
+<sys_created_on>2026-10-27 14:31:33</sys_created_on>
+<sys_id>8a997e7bf0841b10b0e43cf86fc084f3</sys_id>
+<sys_mod_count>0</sys_mod_count>
+<sys_recorded_at>1a17dc3eb510000001</sys_recorded_at>
+<sys_updated_by>IZEAE65</sys_updated_by>
+<sys_updated_on>2026-10-27 14:31:33</sys_updated_on>
+<table>sysapproval_approver</table>
+<target_name>Quote approval read-only</target_name>
+<type>UI Policy</type>
+<update_domain>global</update_domain>
+<update_guid>4019327b31841b10d70ae46d55ff6112</update_guid>
+<update_guid_history>4019327b31841b10d70ae46d55ff6112:-1690302777,9c028123da4c971089ac66866ac69b4a:-1248682579</update_guid_history>
+<update_set display_value=""/>
+<view/>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>INSERT_OR_UPDATE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sys_script_include_8831b82bf0c89710b0e43cf86fc0847c</name>
+<payload>&lt;?xml version="1.0" encoding="UTF-8"?&gt;&lt;record_update table="sys_script_include"&gt;&lt;sys_script_include action="INSERT_OR_UPDATE"&gt;&lt;access&gt;package_private&lt;/access&gt;&lt;active&gt;true&lt;/active&gt;&lt;api_name&gt;global.QuoteApprovalGuard&lt;/api_name&gt;&lt;caller_access/&gt;&lt;client_callable&gt;false&lt;/client_callable&gt;&lt;description/&gt;&lt;mobile_callable&gt;false&lt;/mobile_callable&gt;&lt;name&gt;QuoteApprovalGuard&lt;/name&gt;&lt;sandbox_callable&gt;false&lt;/sandbox_callable&gt;&lt;script&gt;&lt;![CDATA[var QuoteApprovalGuard = Class.create();
+QuoteApprovalGuard.prototype = {
+    initialize: function() {},
+
+    QUOTE_TABLE: 'sn_quote_mgmt_core_quote',
+
+    isQuoteApproval: function(rec) {
+        if (!rec)
+            return false;
+        if (rec.getValue('source_table') == this.QUOTE_TABLE)
+            return true;
+        var taskId = rec.getValue('sysapproval');
+        if (!taskId)
+            return false;
+        var task = new GlideRecord('task');
+        if (!task.get(taskId))
+            return false;
+        return task.getValue('sys_class_name') == this.QUOTE_TABLE;
+    },
+
+    canDecide: function(rec) {
+        if (!rec)
+            return false;
+        if (gs.getUserName() == 'system')
+            return true;
+        if (gs.hasRole('admin'))
+            return true;
+        var approverId = rec.getValue('approver');
+        if (!approverId)
+            return false;
+        if (approverId == gs.getUserID())
+            return true;
+        return this._isActiveApprovalDelegate(approverId);
+    },
+
+    canWriteState: function(rec) {
+        if (!this.isQuoteApproval(rec))
+            return true;
+        var state = rec.getValue('state');
+        if (state != 'approved' &amp;&amp; state != 'rejected')
+            return true;
+        return this.canDecide(this._stored(rec));
+    },
+
+    canWriteApprover: function(rec) {
+        if (!this.isQuoteApproval(rec))
+            return true;
+        return this.canDecide(this._stored(rec));
+    },
+
+    canRead: function(rec) {
+        if (!this.isQuoteApproval(rec))
+            return true;
+        var quoteId = this._quoteId(rec);
+        if (!quoteId)
+            return false;
+        var quote = new GlideRecord(this.QUOTE_TABLE);
+        if (!quote.get(quoteId))
+            return false;
+        return quote.canRead();
+    },
+
+    blockUnauthorizedDecision: function(current, previous) {
+        if (!this.isQuoteApproval(current))
+            return;
+        if (this.canDecide(previous))
+            return;
+
+        var newState = current.getValue('state');
+        var setsOutcome = current.state.changes() &amp;&amp; (newState == 'approved' || newState == 'rejected');
+        var movesApprover = current.approver.changes();
+        if (!setsOutcome &amp;&amp; !movesApprover)
+            return;
+
+        gs.addErrorMessage('Nur der eingetragene Genehmiger darf diese Genehmigung genehmigen oder ablehnen.');
+        current.setAbortAction(true);
+    },
+
+    _quoteId: function(rec) {
+        if (rec.getValue('source_table') == this.QUOTE_TABLE &amp;&amp; rec.getValue('document_id'))
+            return rec.getValue('document_id');
+        return rec.getValue('sysapproval');
+    },
+
+    _stored: function(rec) {
+        var stored = new GlideRecord('sysapproval_approver');
+        if (stored.get(rec.getUniqueValue()))
+            return stored;
+        return rec;
+    },
+
+    _isActiveApprovalDelegate: function(approverId) {
+        var now = new GlideDateTime();
+        var del = new GlideRecord('sys_user_delegate');
+        del.addQuery('user', approverId);
+        del.addQuery('delegate', gs.getUserID());
+        del.addQuery('approvals', true);
+        del.query();
+        while (del.next()) {
+            var starts = del.getValue('starts');
+            if (starts) {
+                var startAt = new GlideDateTime(starts);
+                if (startAt.compareTo(now) &gt; 0)
+                    continue;
+            }
+            var ends = del.getValue('ends');
+            if (ends) {
+                var endAt = new GlideDateTime(ends);
+                if (endAt.compareTo(now) &lt; 0)
+                    continue;
+            }
+            return true;
+        }
+        return false;
+    },
+
+    type: 'QuoteApprovalGuard'
+};]]&gt;&lt;/script&gt;&lt;sys_class_name&gt;sys_script_include&lt;/sys_class_name&gt;&lt;sys_created_by&gt;IZEAE65&lt;/sys_created_by&gt;&lt;sys_created_on&gt;2026-10-26 10:06:22&lt;/sys_created_on&gt;&lt;sys_id&gt;8831b82bf0c89710b0e43cf86fc0847c&lt;/sys_id&gt;&lt;sys_mod_count&gt;3&lt;/sys_mod_count&gt;&lt;sys_name&gt;QuoteApprovalGuard&lt;/sys_name&gt;&lt;sys_package display_value="Global" source="global"&gt;global&lt;/sys_package&gt;&lt;sys_policy/&gt;&lt;sys_scope display_value="Global"&gt;global&lt;/sys_scope&gt;&lt;sys_update_name&gt;sys_script_include_8831b82bf0c89710b0e43cf86fc0847c&lt;/sys_update_name&gt;&lt;sys_updated_by&gt;IZEAE65&lt;/sys_updated_by&gt;&lt;sys_updated_on&gt;2026-10-27 11:38:02&lt;/sys_updated_on&gt;&lt;/sys_script_include&gt;&lt;sys_es_latest_script action="INSERT_OR_UPDATE"&gt;&lt;id&gt;8831b82bf0c89710b0e43cf86fc0847c&lt;/id&gt;&lt;sys_created_by&gt;IZEAE65&lt;/sys_created_by&gt;&lt;sys_created_on&gt;2026-10-26 10:06:22&lt;/sys_created_on&gt;&lt;sys_id&gt;3b433cabf0c89710b0e43cf86fc08409&lt;/sys_id&gt;&lt;sys_mod_count&gt;0&lt;/sys_mod_count&gt;&lt;sys_updated_by&gt;IZEAE65&lt;/sys_updated_by&gt;&lt;sys_updated_on&gt;2026-10-26 10:06:22&lt;/sys_updated_on&gt;&lt;table&gt;sys_script_include&lt;/table&gt;&lt;use_es_latest&gt;true&lt;/use_es_latest&gt;&lt;/sys_es_latest_script&gt;&lt;/record_update&gt;</payload>
+<payload_hash>145984078</payload_hash>
+<remote_update_set display_value="DIGITALL-SOM-STRY0025892">42997e7bf0841b10b0e43cf86fc084f1</remote_update_set>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>IZEAE65</sys_created_by>
+<sys_created_on>2026-10-27 14:31:33</sys_created_on>
+<sys_id>8e997e7bf0841b10b0e43cf86fc084f1</sys_id>
+<sys_mod_count>0</sys_mod_count>
+<sys_recorded_at>1a17d27304a0000001</sys_recorded_at>
+<sys_updated_by>IZEAE65</sys_updated_by>
+<sys_updated_on>2026-10-27 14:31:33</sys_updated_on>
+<table/>
+<target_name>QuoteApprovalGuard</target_name>
+<type>Script Include</type>
+<update_domain>global</update_domain>
+<update_guid>e0e11ef7e8c01b10e3e85789c74af285</update_guid>
+<update_guid_history>e0e11ef7e8c01b10e3e85789c74af285:145984078,f2ae4eb366c01b10edf6ed9d38a42799:97209422,743306b360801b10e9e3392aa68ba680:1191750256,00533cabc3c897109cf6b5b8683478d1:1195888799</update_guid_history>
+<update_set display_value=""/>
+<view/>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>INSERT_OR_UPDATE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sys_security_acl_bae97ce3f00c9710b0e43cf86fc0847e</name>
+<payload>&lt;?xml version="1.0" encoding="UTF-8"?&gt;&lt;record_update table="sys_security_acl"&gt;&lt;sys_security_acl action="INSERT_OR_UPDATE"&gt;&lt;active&gt;true&lt;/active&gt;&lt;admin_overrides&gt;true&lt;/admin_overrides&gt;&lt;advanced&gt;true&lt;/advanced&gt;&lt;applies_to/&gt;&lt;condition/&gt;&lt;controlled_by_refs/&gt;&lt;decision_type&gt;deny&lt;/decision_type&gt;&lt;description&gt;Quote approval approver deny unless approver&lt;/description&gt;&lt;local_or_existing&gt;Existing&lt;/local_or_existing&gt;&lt;name&gt;sysapproval_approver.approver&lt;/name&gt;&lt;operation display_value="write"&gt;write&lt;/operation&gt;&lt;script&gt;&lt;![CDATA[answer = new QuoteApprovalGuard().canWriteApprover(current);]]&gt;&lt;/script&gt;&lt;security_attribute/&gt;&lt;sys_class_name&gt;sys_security_acl&lt;/sys_class_name&gt;&lt;sys_created_by&gt;IZEAE65&lt;/sys_created_by&gt;&lt;sys_created_on&gt;2026-10-26 10:35:14&lt;/sys_created_on&gt;&lt;sys_id&gt;bae97ce3f00c9710b0e43cf86fc0847e&lt;/sys_id&gt;&lt;sys_mod_count&gt;1&lt;/sys_mod_count&gt;&lt;sys_name&gt;sysapproval_approver.approver&lt;/sys_name&gt;&lt;sys_package display_value="Global" source="global"&gt;global&lt;/sys_package&gt;&lt;sys_policy/&gt;&lt;sys_scope display_value="Global"&gt;global&lt;/sys_scope&gt;&lt;sys_update_name&gt;sys_security_acl_bae97ce3f00c9710b0e43cf86fc0847e&lt;/sys_update_name&gt;&lt;sys_updated_by&gt;IZEAE65&lt;/sys_updated_by&gt;&lt;sys_updated_on&gt;2026-10-26 10:37:10&lt;/sys_updated_on&gt;&lt;type display_value="record"&gt;record&lt;/type&gt;&lt;/sys_security_acl&gt;&lt;sys_es_latest_script action="INSERT_OR_UPDATE"&gt;&lt;id&gt;bae97ce3f00c9710b0e43cf86fc0847e&lt;/id&gt;&lt;sys_created_by&gt;IZEAE65&lt;/sys_created_by&gt;&lt;sys_created_on&gt;2026-10-26 10:35:14&lt;/sys_created_on&gt;&lt;sys_id&gt;f6e97ce3f00c9710b0e43cf86fc084a6&lt;/sys_id&gt;&lt;sys_mod_count&gt;0&lt;/sys_mod_count&gt;&lt;sys_updated_by&gt;IZEAE65&lt;/sys_updated_by&gt;&lt;sys_updated_on&gt;2026-10-26 10:35:14&lt;/sys_updated_on&gt;&lt;table&gt;sys_security_acl&lt;/table&gt;&lt;use_es_latest&gt;true&lt;/use_es_latest&gt;&lt;/sys_es_latest_script&gt;&lt;/record_update&gt;</payload>
+<payload_hash>-1273290799</payload_hash>
+<remote_update_set display_value="DIGITALL-SOM-STRY0025892">42997e7bf0841b10b0e43cf86fc084f1</remote_update_set>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>IZEAE65</sys_created_by>
+<sys_created_on>2026-10-27 14:31:33</sys_created_on>
+<sys_id>c2997e7bf0841b10b0e43cf86fc084f3</sys_id>
+<sys_mod_count>0</sys_mod_count>
+<sys_recorded_at>1a177c91a8e0000001</sys_recorded_at>
+<sys_updated_by>IZEAE65</sys_updated_by>
+<sys_updated_on>2026-10-27 14:31:33</sys_updated_on>
+<table>sysapproval_approver.approver</table>
+<target_name>sysapproval_approver.approver</target_name>
+<type>Access Control</type>
+<update_domain>global</update_domain>
+<update_guid>c35af0271f0c9710d4dfa1642ca6f2f3</update_guid>
+<update_guid_history>c35af0271f0c9710d4dfa1642ca6f2f3:-1273290799,7ae97ce3790c9710d7de8f31d1c28ea4:-141117049</update_guid_history>
+<update_set display_value=""/>
+<view/>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>INSERT_OR_UPDATE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sys_script_e725786ff0c89710b0e43cf86fc084ff</name>
+<payload>&lt;?xml version="1.0" encoding="UTF-8"?&gt;&lt;record_update sys_domain="global" table="sys_script"&gt;&lt;sys_script action="INSERT_OR_UPDATE"&gt;&lt;abort_action&gt;false&lt;/abort_action&gt;&lt;access&gt;package_private&lt;/access&gt;&lt;action_delete&gt;false&lt;/action_delete&gt;&lt;action_insert&gt;false&lt;/action_insert&gt;&lt;action_query&gt;false&lt;/action_query&gt;&lt;action_update&gt;true&lt;/action_update&gt;&lt;active&gt;true&lt;/active&gt;&lt;add_message&gt;false&lt;/add_message&gt;&lt;advanced&gt;true&lt;/advanced&gt;&lt;change_fields&gt;false&lt;/change_fields&gt;&lt;client_callable&gt;false&lt;/client_callable&gt;&lt;collection&gt;sysapproval_approver&lt;/collection&gt;&lt;condition/&gt;&lt;description&gt;Only the stored approver can approve or reject a quote approval&lt;/description&gt;&lt;execute_function&gt;false&lt;/execute_function&gt;&lt;filter_condition table="sysapproval_approver"&gt;stateCHANGESTOapproved^ORstateCHANGESTOrejected^ORapproverVALCHANGES^EQ&lt;item display_value="Approved" endquery="false" field="state" goto="false" newquery="false" operator="CHANGESTO" or="false" value="approved"/&gt;&lt;item display_value="Rejected" endquery="false" field="state" goto="false" newquery="false" operator="CHANGESTO" or="true" value="rejected"/&gt;&lt;item endquery="false" field="approver" goto="false" newquery="false" operator="VALCHANGES" or="true" value=""/&gt;&lt;item endquery="true" field="" goto="false" newquery="false" operator="=" or="false" value=""/&gt;&lt;/filter_condition&gt;&lt;is_rest&gt;false&lt;/is_rest&gt;&lt;message/&gt;&lt;name&gt;Block quote approval by non-approver&lt;/name&gt;&lt;order&gt;100&lt;/order&gt;&lt;priority&gt;100&lt;/priority&gt;&lt;rest_method/&gt;&lt;rest_method_text/&gt;&lt;rest_service/&gt;&lt;rest_service_text/&gt;&lt;rest_variables/&gt;&lt;role_conditions/&gt;&lt;script&gt;&lt;![CDATA[(function executeRule(current, previous) {
+    new QuoteApprovalGuard().blockUnauthorizedDecision(current, previous);
+})(current, previous);]]&gt;&lt;/script&gt;&lt;sys_class_name&gt;sys_script&lt;/sys_class_name&gt;&lt;sys_created_by&gt;IZEAE65&lt;/sys_created_by&gt;&lt;sys_created_on&gt;2026-10-26 10:19:20&lt;/sys_created_on&gt;&lt;sys_domain&gt;global&lt;/sys_domain&gt;&lt;sys_domain_path/&gt;&lt;sys_id&gt;e725786ff0c89710b0e43cf86fc084ff&lt;/sys_id&gt;&lt;sys_mod_count&gt;0&lt;/sys_mod_count&gt;&lt;sys_name&gt;Block quote approval by non-approver&lt;/sys_name&gt;&lt;sys_overrides/&gt;&lt;sys_package display_value="Global" source="global"&gt;global&lt;/sys_package&gt;&lt;sys_policy/&gt;&lt;sys_scope display_value="Global"&gt;global&lt;/sys_scope&gt;&lt;sys_update_name&gt;sys_script_e725786ff0c89710b0e43cf86fc084ff&lt;/sys_update_name&gt;&lt;sys_updated_by&gt;IZEAE65&lt;/sys_updated_by&gt;&lt;sys_updated_on&gt;2026-10-26 10:19:20&lt;/sys_updated_on&gt;&lt;template/&gt;&lt;when&gt;before&lt;/when&gt;&lt;/sys_script&gt;&lt;sys_translated_text action="delete_multiple" query="documentkey=e725786ff0c89710b0e43cf86fc084ff"/&gt;&lt;sys_es_latest_script action="INSERT_OR_UPDATE"&gt;&lt;id&gt;e725786ff0c89710b0e43cf86fc084ff&lt;/id&gt;&lt;sys_created_by&gt;IZEAE65&lt;/sys_created_by&gt;&lt;sys_created_on&gt;2026-10-26 10:19:19&lt;/sys_created_on&gt;&lt;sys_id&gt;3546bcaff0c89710b0e43cf86fc084ac&lt;/sys_id&gt;&lt;sys_mod_count&gt;0&lt;/sys_mod_count&gt;&lt;sys_updated_by&gt;IZEAE65&lt;/sys_updated_by&gt;&lt;sys_updated_on&gt;2026-10-26 10:19:19&lt;/sys_updated_on&gt;&lt;table&gt;sys_script&lt;/table&gt;&lt;use_es_latest&gt;true&lt;/use_es_latest&gt;&lt;/sys_es_latest_script&gt;&lt;/record_update&gt;</payload>
+<payload_hash>1954527077</payload_hash>
+<remote_update_set display_value="DIGITALL-SOM-STRY0025892">42997e7bf0841b10b0e43cf86fc084f1</remote_update_set>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>IZEAE65</sys_created_by>
+<sys_created_on>2026-10-27 14:31:33</sys_created_on>
+<sys_id>c6997e7bf0841b10b0e43cf86fc084f1</sys_id>
+<sys_mod_count>0</sys_mod_count>
+<sys_recorded_at>1a177b8c49a0000001</sys_recorded_at>
+<sys_updated_by>IZEAE65</sys_updated_by>
+<sys_updated_on>2026-10-27 14:31:33</sys_updated_on>
+<table>sysapproval_approver</table>
+<target_name>Block quote approval by non-approver</target_name>
+<type>Business Rule</type>
+<update_domain>global</update_domain>
+<update_guid>3146bcaf79c8971012f77b77b20c46bb</update_guid>
+<update_guid_history>3146bcaf79c8971012f77b77b20c46bb:1954527077</update_guid_history>
+<update_set display_value=""/>
+<view/>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>INSERT_OR_UPDATE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sys_ui_policy_action_c9828d23f04c9710b0e43cf86fc084fe</name>
+<payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_ui_policy_action"><sys_ui_policy_action action="INSERT_OR_UPDATE"><cleared>false</cleared><disabled>true</disabled><field>approver</field><field_message/><field_message_type>none</field_message_type><mandatory>ignore</mandatory><sys_class_name>sys_ui_policy_action</sys_class_name><sys_created_by>IZEAE65</sys_created_by><sys_created_on>2026-10-26 11:13:38</sys_created_on><sys_id>c9828d23f04c9710b0e43cf86fc084fe</sys_id><sys_mod_count>0</sys_mod_count><sys_name>approver</sys_name><sys_package display_value="Global" source="global">global</sys_package><sys_policy/><sys_scope display_value="Global">global</sys_scope><sys_update_name>sys_ui_policy_action_c9828d23f04c9710b0e43cf86fc084fe</sys_update_name><sys_updated_by>IZEAE65</sys_updated_by><sys_updated_on>2026-10-26 11:13:38</sys_updated_on><table>sysapproval_approver</table><ui_policy display_value="Quote approval read-only">6d7e7cabf00c9710b0e43cf86fc08464</ui_policy><value/><value_action>ignore</value_action><visible>ignore</visible></sys_ui_policy_action></record_update>]]></payload>
+<payload_hash>1067320234</payload_hash>
+<remote_update_set display_value="DIGITALL-SOM-STRY0025892">42997e7bf0841b10b0e43cf86fc084f1</remote_update_set>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>IZEAE65</sys_created_by>
+<sys_created_on>2026-10-27 14:31:33</sys_created_on>
+<sys_id>ce997e7bf0841b10b0e43cf86fc084f4</sys_id>
+<sys_mod_count>0</sys_mod_count>
+<sys_recorded_at>1a177ea7bec0000001</sys_recorded_at>
+<sys_updated_by>IZEAE65</sys_updated_by>
+<sys_updated_on>2026-10-27 14:31:33</sys_updated_on>
+<table>sysapproval_approver</table>
+<target_name>approver</target_name>
+<type>UI Policy Action</type>
+<update_domain>global</update_domain>
+<update_guid>91b24163714c97108352a5b015d73894</update_guid>
+<update_guid_history>91b24163714c97108352a5b015d73894:1067320234</update_guid_history>
+<update_set display_value=""/>
+<view/>
+</sys_update_xml>
+</unload>
