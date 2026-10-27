@@ -284,6 +284,7 @@ ACL на `state` пуска полето, докато стойността ощ
 - Reverse if false: изключено
 - Inherit: изключено
 - Order: `100`
+- UI type: All. При Desktop policy-то не заключва полетата в CSM/FSM Configurable Workspace.
 
 3. Save.
 4. В UI Policy Actions, New, два пъти:
@@ -306,6 +307,9 @@ ACL на `state` пуска полето, докато стойността ощ
 - Reverse if false: изключено
 - Inherit: изключено
 - Order: `200`
+- UI type: All
+
+В качения сет `DIGITALL-SOM-STRY0025892` тази policy има само `Approver is (dynamic) Me`. Отвори съществуващия запис и добави `Source table is sn_quote_mgmt_core_quote`. Без него отключването важи и за Genehmigung извън Quote. На двете policy сложи UI type All.
 
 3. Save.
 4. В UI Policy Actions, New, два пъти:
@@ -330,7 +334,7 @@ ACL на `state` пуска полето, докато стойността ощ
 
 ## Стъпка 7. Скрий бутоните само на тази форма
 
-UI policy пипа полета. Genehmigen и Ablehnen не са полета и policy не може да ги скрие.
+В `DIGITALL-SOM-STRY0025892` ги няма. Добави двата записа по-долу. UI policy пипа полета. Genehmigen и Ablehnen не са полета и policy не може да ги скрие.
 
 UI actions са много, защото списъкът съдържа и менютата на списъка. Нов бутон не маха зелените и червените. Затова тук нищо в `sys_ui_action` не се променя.
 

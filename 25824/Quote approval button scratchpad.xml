@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xml>
+<sys_script>
+<abort_action>false</abort_action>
+<access>package_private</access>
+<action_delete>false</action_delete>
+<action_insert>false</action_insert>
+<action_query>false</action_query>
+<action_update>false</action_update>
+<active>true</active>
+<add_message>false</add_message>
+<advanced>true</advanced>
+<change_fields>false</change_fields>
+<client_callable>false</client_callable>
+<collection>sysapproval_approver</collection>
+<condition/>
+<description>Scratchpad for quote approval buttons</description>
+<execute_function>false</execute_function>
+<filter_condition/>
+<is_rest>false</is_rest>
+<message/>
+<name>Quote approval button scratchpad</name>
+<order>100</order>
+<priority>100</priority>
+<script><![CDATA[(function executeRule(current, previous) {
+    var guard = new QuoteApprovalGuard();
+    g_scratchpad.quoteApproval = guard.isQuoteApproval(current) ? 'true' : 'false';
+    g_scratchpad.quoteApprovalCanDecide = guard.canDecide(current) ? 'true' : 'false';
+})(current, previous);]]></script>
+<sys_class_name>sys_script</sys_class_name>
+<sys_name>Quote approval button scratchpad</sys_name>
+<sys_package display_value="Global" source="global">global</sys_package>
+<sys_scope display_value="Global">global</sys_scope>
+<sys_update_name>sys_script_e8c01b10f0441b10b0e43cf86fc08411</sys_update_name>
+<when>display</when>
+</sys_script>
+</xml>
