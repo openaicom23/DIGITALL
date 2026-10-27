@@ -85,6 +85,18 @@ QuoteApprovalGuard.prototype = {
         return this.canDecide(this._stored(rec));
     },
 
+    canRead: function(rec) {
+        if (!this.isQuoteApproval(rec))
+            return true;
+        var quoteId = this._quoteId(rec);
+        if (!quoteId)
+            return false;
+        var quote = new GlideRecord(this.QUOTE_TABLE);
+        if (!quote.get(quoteId))
+            return false;
+        return quote.canRead();
+    },
+
     blockUnauthorizedDecision: function(current, previous) {
         if (!this.isQuoteApproval(current))
             return;
@@ -99,6 +111,12 @@ QuoteApprovalGuard.prototype = {
 
         gs.addErrorMessage('Nur der eingetragene Genehmiger darf diese Genehmigung genehmigen oder ablehnen.');
         current.setAbortAction(true);
+    },
+
+    _quoteId: function(rec) {
+        if (rec.getValue('source_table') == this.QUOTE_TABLE && rec.getValue('document_id'))
+            return rec.getValue('document_id');
+        return rec.getValue('sysapproval');
     },
 
     _stored: function(rec) {
@@ -215,6 +233,35 @@ answer = new QuoteApprovalGuard().canWriteApprover(current);
 4. Submit.
 
 Така Genehmiger не се прехвърля върху друг потребител от формата или от API. В Activity на неуспешния тест SOM_Presales_1 е писал и това поле.
+
+## Стъпка 4.1. Редът се чете само ако се чете Quote
+
+Табът стои на Quote, затова го вижда който е отворил Quote. Редът в `sysapproval_approver` се отваря и от списъка на одобренията, от търсене и по директен линк. Allow read не спира това: стига едно съществуващо Allow да мине и редът се вижда. Затова тук е Deny unless.
+
+1. Вдигни `security_admin`.
+2. `sys_security_acl.list`, New.
+3. Попълни:
+
+- Type: record
+- Operation: read
+- Name: `sysapproval_approver`
+- Decision type: Deny unless
+- Admin overrides: включено
+- Requires role: празно
+- Advanced: включено
+- Description: `Quote approval read deny unless quote reader`
+
+4. Script:
+
+```javascript
+answer = new QuoteApprovalGuard().canRead(current);
+```
+
+5. Submit.
+
+За Genehmigung към Quote редът се вижда само когато `quote.canRead()` е true. KAM, който чете Quote, вижда всичките й редове в таба. Потребител, който не чете тази Quote, не вижда нейните редове. Genehmigung извън Quote не се пипа. Ако Genehmiger не чете Quote, не вижда и реда, включително от списъка със своите одобрения.
+
+Allow read от стъпка 5 в `25824/steps_bg.txt` остава за обратния случай: KAM чете Quote, а стандартното право пуска само Approver. Allow пуска четене. Deny unless спира четенето за останалите.
 
 ## Стъпка 5. Полетата на формата са само за четене
 

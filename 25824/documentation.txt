@@ -115,13 +115,13 @@ An extra Allow write ACL does not stop this. The rule that already grants write 
 - Before update business rule on `sysapproval_approver`, because a UI action calls `current.update()` and skips ACLs
 - Deny unless write on `sysapproval_approver.state` and on `sysapproval_approver.approver`
 
-KAM sees the story: the Genehmigungen tab, every quote approval row, the status, and the time. That does not require `approval_admin` or `sn_quote_mgmt_core.quote_admin`.
+KAM sees the story: the Genehmigungen tab, every quote approval row, the status, and the time. That does not require `approval_admin` or `sn_quote_mgmt_core.quote_admin`. A quote approval row is readable when the user can read that Quote. A user who cannot read the Quote does not see its rows. The tab stays on the Quote form, with no role of its own.
 
 Only the stored approver, an active approval delegate, `admin`, or `system` can set `approved` or `rejected`, or change `approver`, on a quote approval. `quote_admin` and `approval_admin` do not decide a row unless that user is the stored approver. A UI policy locks those two fields on the form when the logged-in user is not the approver and `source_table` is `sn_quote_mgmt_core_quote`. Other approval tables stay unchanged. `cancelled` is not blocked.
 
 ## Кой одобрява и отказва заявката
 
-KAM вижда таб Genehmigungen, всички редове по Quote, Status и часа. Отваря реда. За това не му трябва отделна роля за одобрение.
+KAM вижда таб Genehmigungen, всички редове по Quote, Status и часа. Отваря реда. За това не му трябва отделна роля за одобрение. Ред към Quote се чете само от потребител, който чете тази Quote. Който не я чете, не вижда нейните редове.
 
 За Genehmigung към Quote (`sn_quote_mgmt_core_quote`, запис в `sysapproval_approver` със статус Angefordert / `requested`) одобряване (Genehmigt / `approved`) и отказ (Abgelehnt / `rejected`) минават само за:
 
