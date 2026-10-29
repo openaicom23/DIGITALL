@@ -1,89 +1,105 @@
 STRY0025424 — Info an Presales nach KAM-Freigabe
-След успешна KAM-Freigabe на Angebot се праща имейл до отговорния Presales.
-Текст: "Folgendes Angebot wurde soeben vom KAM freigegeben:"
+След успешна KAM-Freigabe се праща един имейл до Presales Consultant на офертата.
+Текст, дословно: "Folgendes Angebot wurde soeben vom KAM freigegeben:"
 Плюс: Accountname, Titel der Anfrage, Nummer der Anfrage, Link.
 
-1. Отвори update set
+В експорта на Quote Management Data Model тази нотификация я няма.
+Ползвай съществуващите таблици и полета по-долу. Не пипай чуждите flow-ове и не възстановявай изтрития mail script fits_get_account_kam_recipients (той праща към KAM, не към Presales).
+
+Какво вече е в системата
+- Таблица на офертата: sn_quote_mgmt_core_quote
+- Accountname: account.name
+- Titel der Anfrage: short_description (същото поле ползва Quote KAM Approval Flow)
+- Nummer der Anfrage: number
+- Получател: sn_quote_mgmt_core_quote_internal_contact
+  u_quote = офертата, u_rolle = Presales Consultant, u_user = потребителят
+  Business rule Set Initial PreSales Consultant създава този ред при първото назначаване (assigned_to). Повторно назначаване не го презаписва.
+- Път на Freigabe: бутон Submit for approval (само при state In Progress) слага state = in_approval и пуска flow sn_quote_mgmt_core.quote_kam_approval_flow.
+  След одобрение офертата стига до state = approved. Имелът се закача за тази смяна, не за sysapproval_approver.
+- KAM в акаунта се познава по роля fits_itil_key_account_manager. За това стори ролята служи само за теста, не за получателя.
+- В експорта quote_kam_approval_flow е inactive. Преди теста провери в инстанцията. Ако и там е inactive, Freigabe няма да мине и имейлът няма какво да хване.
+
+1. Update set
+   Превключи приложението на Quote Management Data Model (sn_quote_mgmt_core).
    System Update Sets > Local Update Sets > New.
    Name: STRY0025424 Info an Presales nach KAM-Freigabe
-   Application: същата, в която са останалите SOM quote нотификации (ако няма собствено приложение — Global).
-   State: In progress. Направи го текущ (Make current).
+   State: In progress. Make current.
 
-2. Намери събитието „KAM е одобрил“
-   Отвори реална оферта, която вече е минала през KAM-Freigabe.
-   Related list Approvals (sysapproval_approver), source_table = sn_quote_mgmt_core_quote.
-   Запиши:
-   - кое поле или коя роля отличава KAM от другите одобрители (approver, group, approval definition, wf_activity);
-   - стойността на state при успешно одобрение (обикновено approved);
-   - дали има един KAM или няколко и кога се смята Freigabe за успешна (всеки approved или всички).
+2. Провери тригера в инстанцията
+   Flow Designer > Quote KAM Approval Flow.
+   Потвърди, че при approval approved flow-ът записва quote.state = approved.
+   Ако flow-ът е inactive, не го активирай в това стори. Отбележи го: без активен flow няма Freigabe и няма как да се тества.
+   Отвори една вече одобрена оферта и провери, че short_description е Titel der Anfrage. Ако заглавието е в друго поле, ползвай него в стъпка 4.
 
-3. Намери получателя Presales
-   На същата оферта намери „zuständige Presales-Kontaktperson“.
-   Вариант А: reference поле към sys_user на sn_quote_mgmt_core_quote. Запиши името на полето.
-   Вариант Б: ред в sn_quote_mgmt_core_quote_related_party с роля Presales. Запиши role и полето за user.
-   Имейлът отива само до този човек. Ако полето е празно, писмо не се праща.
+3. Mail script за получателя
+   System Notification > Email > Notification Email Scripts > New.
+   Name: fits_get_presales_consultant
+   Приложи го после в нотификацията (стъпка 4). Скрипт:
 
-4. Намери четирите полета за текста
-   На quote (или на свързаната Anfrage, ако номерът и заглавието не са на самата оферта) запиши dot-walk пътя за:
-   - Accountname
-   - Titel der Anfrage
-   - Nummer der Anfrage
-   - линк към записа, който Presales трябва да отвори (quote в платформата, освен ако бизнесът сочи друга форма).
+   (function runMailScript(current, template, email, email_action, event) {
+       var contactGr = new GlideRecord('sn_quote_mgmt_core_quote_internal_contact');
+       contactGr.addQuery('u_quote', current.getUniqueValue());
+       contactGr.addQuery('u_rolle', 'Presales Consultant');
+       contactGr.query();
+       while (contactGr.next()) {
+           var userEmail = contactGr.u_user.email;
+           var userName = contactGr.u_user.name;
+           if (userEmail)
+               email.addAddress('to', userEmail, userName);
+       }
+   })(current, template, email, email_action, event);
 
-5. Създай нотификацията
+   Ако няма ред с тази роля или u_user е празен, адрес не се добавя и писмо не тръгва.
+
+4. Нотификация
    System Notification > Email > Notifications > New.
    Name: Angebot KAM-Freigabe - Presales
-   Table: sysapproval_approver
+   Table: sn_quote_mgmt_core_quote
    Active: true
-   Send when: Record inserted or updated
-   Inserted: false
    Updated: true
-   Conditions:
-   - State changes to approved
-   - Source table is sn_quote_mgmt_core_quote
-   - плюс условието за KAM от стъпка 2
-   Advanced condition, ако KAM не се хваща с filter:
-   връща true само когато одобрителят е KAM и на quote-а има Presales user.
-   Who will receive:
-   Users/groups in fields = пътят от стъпка 3, например document_id.<presales_поле>
-   (при related party: скрипт в advanced condition или mail script, който взима user-а с роля Presales).
-   Send to event creator: false.
+   Inserted: false
+   Condition: State changes to approved
+   Send to event creator: false
+   Users/Groups in fields: празно
+   Who will receive > Mail scripts: fits_get_presales_consultant
+   Subject: Angebot freigegeben: ${number}
+   Content type: HTML
+   Header/footer: същите като останалите FI-TS quote нотификации (quote_email_header / quote_email_footer), ако се ползват там.
+   Тяло:
 
-6. Subject и тяло
-   Subject: Angebot freigegeben: ${document_id.<номер>}
-   Content type: HTML.
-   Копирай header/footer от съществуваща FI-TS нотификация (епик Kundenkommunikation).
-   В тялото, дословно:
    Folgendes Angebot wurde soeben vom KAM freigegeben:
-   Account: ${document_id.<account>}
-   Titel: ${document_id.<titel>}
-   Nummer: ${document_id.<nummer>}
-   Link: ${URI} или линк към quote-а, ако нотификацията е върху approval, а не върху quote.
-   Замени <...> с пътищата от стъпка 4. Preview с реален approval запис.
+   Account: ${account.name}
+   Titel: ${short_description}
+   Nummer: ${number}
+   Link: ${URI}
 
-7. Провери, че не чупи други одобрения
-   Условието трябва да изключва:
-   - approval върху друга таблица;
-   - одобрител, който не е KAM;
-   - state rejected, cancelled, requested;
-   - повторно запазване на вече approved запис (условието е „changes to approved“, не „is approved“).
+   Preview с реална оферта в state approved, която има Presales Consultant.
 
-8. Тест в инстанцията
-   Вземи quote с попълнен Presales и изчакващ KAM approval.
-   KAM сменя state на approved.
-   Провери System Mailboxes > Outbox / Email log:
-   - един имейл;
-   - до Presales, не до KAM;
-   - текстът е точният от сторито;
-   - account, titel, nummer са верни;
-   - линкът отваря офертата.
+5. Какво да не хваща
+   Condition е „changes to approved“, не „is approved“.
+   Няма имейл при:
+   - in_approval, rejected, canceled, draft
+   - повторно save на вече approved оферта
+   - оферта без Presales Consultant
+
+6. Тест
+   Оферта в In Progress, с assigned_to, за да съществува Presales Consultant.
+   Провери related list Quote internal contacts: има ред Presales Consultant с user и email.
+   Submit for approval. State става in_approval. Имейл към Presales още няма.
+   KAM (роля fits_itil_key_account_manager на account team-а, или който flow-ът е сложил като approver) одобрява.
+   State става approved.
+   System Mailboxes > Outbox:
+   - един имейл
+   - до Presales Consultant, не до KAM
+   - текстът е точният от сторито
+   - account, titel, nummer са верни
+   - линкът отваря офертата
    Отрицателни:
-   - KAM reject → няма имейл;
-   - друг одобрител approved → няма имейл;
-   - quote без Presales → няма имейл;
-   - повторно update на същия approved ред → няма втори имейл.
+   - KAM reject → няма имейл
+   - оферта без Presales Consultant → няма имейл
+   - втори save на същата approved оферта → няма втори имейл
 
-9. Приключи сторито
-   Качи нотификацията в update set-а.
-   В STRY0025424: work note с името на нотификацията и резултата от теста.
-   Developer test = pass, след като четирите сценария от стъпка 8 минат.
+7. Стори
+   В update set-а трябва да са нотификацията и mail script-ът.
+   Work note в STRY0025424: имената на двата записа и резултатът от теста.
+   Developer test = pass, след като сценариите от стъпка 6 минат.
