@@ -1,0 +1,89 @@
+STRY0025424 — Info an Presales nach KAM-Freigabe
+След успешна KAM-Freigabe на Angebot се праща имейл до отговорния Presales.
+Текст: "Folgendes Angebot wurde soeben vom KAM freigegeben:"
+Плюс: Accountname, Titel der Anfrage, Nummer der Anfrage, Link.
+
+1. Отвори update set
+   System Update Sets > Local Update Sets > New.
+   Name: STRY0025424 Info an Presales nach KAM-Freigabe
+   Application: същата, в която са останалите SOM quote нотификации (ако няма собствено приложение — Global).
+   State: In progress. Направи го текущ (Make current).
+
+2. Намери събитието „KAM е одобрил“
+   Отвори реална оферта, която вече е минала през KAM-Freigabe.
+   Related list Approvals (sysapproval_approver), source_table = sn_quote_mgmt_core_quote.
+   Запиши:
+   - кое поле или коя роля отличава KAM от другите одобрители (approver, group, approval definition, wf_activity);
+   - стойността на state при успешно одобрение (обикновено approved);
+   - дали има един KAM или няколко и кога се смята Freigabe за успешна (всеки approved или всички).
+
+3. Намери получателя Presales
+   На същата оферта намери „zuständige Presales-Kontaktperson“.
+   Вариант А: reference поле към sys_user на sn_quote_mgmt_core_quote. Запиши името на полето.
+   Вариант Б: ред в sn_quote_mgmt_core_quote_related_party с роля Presales. Запиши role и полето за user.
+   Имейлът отива само до този човек. Ако полето е празно, писмо не се праща.
+
+4. Намери четирите полета за текста
+   На quote (или на свързаната Anfrage, ако номерът и заглавието не са на самата оферта) запиши dot-walk пътя за:
+   - Accountname
+   - Titel der Anfrage
+   - Nummer der Anfrage
+   - линк към записа, който Presales трябва да отвори (quote в платформата, освен ако бизнесът сочи друга форма).
+
+5. Създай нотификацията
+   System Notification > Email > Notifications > New.
+   Name: Angebot KAM-Freigabe - Presales
+   Table: sysapproval_approver
+   Active: true
+   Send when: Record inserted or updated
+   Inserted: false
+   Updated: true
+   Conditions:
+   - State changes to approved
+   - Source table is sn_quote_mgmt_core_quote
+   - плюс условието за KAM от стъпка 2
+   Advanced condition, ако KAM не се хваща с filter:
+   връща true само когато одобрителят е KAM и на quote-а има Presales user.
+   Who will receive:
+   Users/groups in fields = пътят от стъпка 3, например document_id.<presales_поле>
+   (при related party: скрипт в advanced condition или mail script, който взима user-а с роля Presales).
+   Send to event creator: false.
+
+6. Subject и тяло
+   Subject: Angebot freigegeben: ${document_id.<номер>}
+   Content type: HTML.
+   Копирай header/footer от съществуваща FI-TS нотификация (епик Kundenkommunikation).
+   В тялото, дословно:
+   Folgendes Angebot wurde soeben vom KAM freigegeben:
+   Account: ${document_id.<account>}
+   Titel: ${document_id.<titel>}
+   Nummer: ${document_id.<nummer>}
+   Link: ${URI} или линк към quote-а, ако нотификацията е върху approval, а не върху quote.
+   Замени <...> с пътищата от стъпка 4. Preview с реален approval запис.
+
+7. Провери, че не чупи други одобрения
+   Условието трябва да изключва:
+   - approval върху друга таблица;
+   - одобрител, който не е KAM;
+   - state rejected, cancelled, requested;
+   - повторно запазване на вече approved запис (условието е „changes to approved“, не „is approved“).
+
+8. Тест в инстанцията
+   Вземи quote с попълнен Presales и изчакващ KAM approval.
+   KAM сменя state на approved.
+   Провери System Mailboxes > Outbox / Email log:
+   - един имейл;
+   - до Presales, не до KAM;
+   - текстът е точният от сторито;
+   - account, titel, nummer са верни;
+   - линкът отваря офертата.
+   Отрицателни:
+   - KAM reject → няма имейл;
+   - друг одобрител approved → няма имейл;
+   - quote без Presales → няма имейл;
+   - повторно update на същия approved ред → няма втори имейл.
+
+9. Приключи сторито
+   Качи нотификацията в update set-а.
+   В STRY0025424: work note с името на нотификацията и резултата от теста.
+   Developer test = pass, след като четирите сценария от стъпка 8 минат.
