@@ -1,0 +1,1 @@
+Error MessageAccess to event 'sn_quote_mgmt_core.quote.kam_approved' from scope 'Quote Management Data Model' has been refused. The event is not defined.
