@@ -109,6 +109,8 @@ STRY0025424 — Info an Presales nach KAM-Freigabe
 8. Тест
    Оферта в In Progress, с assigned_to, за да съществува Presales Consultant.
    Провери related list Quote internal contacts: има ред Presales Consultant с user и email.
+   На този user Notification трябва да е Enable. В базата Enable е стойност 2, Disable е 1.
+   Трябва и активно Email устройство в cmn_notif_device. Без него писмо не се създава.
    Submit for approval. State става in_approval. Имейл към Presales още няма.
    KAM (роля fits_itil_key_account_manager на account team-а, или който flow-ът е сложил като approver) одобрява.
    State става approved.
