@@ -1,0 +1,22 @@
+gs.print('--- by event ---');
+var gr = new GlideRecord('sysevent_email_action');
+gr.addQuery('event_name', 'sn_quote_mgmt_core.quote.kam_approved');
+gr.query();
+gs.print('count=' + gr.getRowCount());
+while (gr.next()) {
+    gs.print(gr.name + ' | active=' + gr.active + ' | table=' + gr.collection + ' | parm1=' + gr.event_parm_1 + ' | condition=' + gr.condition + ' | scope=' + gr.sys_scope.getDisplayValue());
+}
+
+gs.print('--- by name ---');
+var n = new GlideRecord('sysevent_email_action');
+n.addQuery('name', 'CONTAINS', 'Presales');
+n.query();
+while (n.next()) {
+    gs.print(n.name + ' | event=' + n.event_name + ' | active=' + n.active + ' | table=' + n.collection + ' | cond=' + n.condition);
+}
+
+var u = new GlideRecord('sys_user');
+if (u.get('f7aaa82dc19db6101f18ba79f0f6483e'))
+    gs.print('USER ' + u.getDisplayValue() + ' | email=' + u.email + ' | notification=' + u.notification + ' | active=' + u.active);
+else
+    gs.print('PARM1 IS NOT A USER');

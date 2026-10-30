@@ -40,8 +40,12 @@ STRY0025424 — Info an Presales nach KAM-Freigabe
    Получателят се подава като event parm 1. Mail script за To не се ползва.
 
 4. Event
+   Application picker: Quote Management Data Model. Иначе scope-ът отказва събитието.
    System Policy > Events > Registry > New.
-   Event name: sn_quote_mgmt_core.quote.kam_approved
+   В полето Event name напиши само: quote.kam_approved
+   Не слагай префикса sn_quote_mgmt_core. Платформата го добавя сама.
+   След Save името трябва да е точно: sn_quote_mgmt_core.quote.kam_approved
+   Ако си написал пълното име, записът става sn_quote_mgmt_core.sn_quote_mgmt_core.quote.kam_approved и business rule-ът гърми с „event is not defined“. Изтрий грешния и създай този.
    Table: sn_quote_mgmt_core_quote
 
 5. Business rule
@@ -80,6 +84,8 @@ STRY0025424 — Info an Presales nach KAM-Freigabe
    Send when: Event is fired
    Event name: sn_quote_mgmt_core.quote.kam_approved
    Event parm 1 contains recipient: true
+   Conditions: празно. Не слагай „State changes to approved“ тук.
+   Събитието се обработва след записа. Тогава changes to вече е false и нотификацията се пропуска, въпреки че event логът е processed.
    Send to event creator: false
    Users / Groups / Users-groups in fields: празно
    Subject: Angebot freigegeben: ${number}
