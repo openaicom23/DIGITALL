@@ -39,6 +39,8 @@ STRY0025424 — Info an Presales nach KAM-Freigabe
    Нотификацията Angebot KAM-Freigabe - Presales се преправя, не се прави втора.
 
 4. Mail script
+   Application picker: Quote Management Data Model, същият scope като нотификацията.
+   Скрипт в Global и нотификация в приложението не се виждат. Тогава ${mail_script:...} не тръгва, To остава празен и имейл няма.
    System Notification > Email > Notification Email Scripts > New.
    Name: fits_get_presales_consultant
 
