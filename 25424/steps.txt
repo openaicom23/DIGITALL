@@ -59,32 +59,40 @@ STRY0025424 — Info an Presales nach KAM-Freigabe
        }
    })(current, template, email, email_action, event);
 
-5. Нотификация
-   Отвори Angebot KAM-Freigabe - Presales.
-   Table: sn_quote_mgmt_core_quote
-   Active: true
-   Send when: Record inserted or updated
-   Updated: true
-   Inserted: false
-   Event name: празно. Ако остане event, нотификацията не тръгва от смяната на state.
-   Conditions: празно
-   Advanced condition:
+5. Нотификация, поле по поле
+   Менюто Email > Notifications може да липсва. Ползвай филтъра вляво.
+   Преди New: Application picker = Quote Management Data Model.
 
-   current.state.changesTo('approved');
-
-   Send to event creator: false
-   Users / Groups / Users-groups in fields: празно
-   Subject: Angebot freigegeben: ${number}
-   Content type: text/html
-   В началото на тялото, преди текста:
+   1. Във филтъра напиши sysevent_email_action.list и натисни Enter.
+   2. New.
+   3. Name: Angebot KAM-Freigabe - Presales
+   4. Table: sn_quote_mgmt_core_quote
+   5. Active: true
+   6. Send when: Record inserted or updated
+   7. Inserted: false
+   8. Updated: true
+   9. Event name: остави празно
+   10. Conditions: остави празно
+   11. Advanced: true
+   12. Advanced condition, точно този ред:
+       current.state.changesTo('approved');
+   13. Send to event creator: false
+   14. Users: празно
+   15. Groups: празно
+   16. Users/Groups in fields: празно
+   17. Subject: Angebot freigegeben: ${number}
+   18. Content type: HTML
+   19. Message HTML, от първия ред:
 
    ${mail_script:fits_get_presales_consultant}
+   <p>Folgendes Angebot wurde soeben vom KAM freigegeben:</p>
+   <p>Account: ${account.name}<br/>
+   Titel: ${short_description}<br/>
+   Nummer: ${number}<br/>
+   Link: ${URI}</p>
 
-   Folgendes Angebot wurde soeben vom KAM freigegeben:
-   Account: ${account.name}
-   Titel: ${short_description}
-   Nummer: ${number}
-   Link: ${URI}
+   20. Save.
+   21. На записа Application трябва да е Quote Management Data Model.
 
 6. Какво да не хваща
    Advanced condition е changesTo('approved'), не „state is approved“.
