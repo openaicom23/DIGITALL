@@ -18,6 +18,9 @@ STRY0025424 — Info an Presales nach KAM-Freigabe
   След одобрение офертата стига до state = approved. Имелът се закача за тази смяна, не за sysapproval_approver.
 - KAM в акаунта се познава по роля fits_itil_key_account_manager. За това стори ролята служи само за теста, не за получателя.
 - В експорта quote_kam_approval_flow е inactive. Преди теста провери в инстанцията. Ако и там е inactive, Freigabe няма да мине и имейлът няма какво да хване.
+- Вторият експорт (Quote Management Application, sn_quote_mgmt) не съдържа тази нотификация. Потвърждава същата таблица sn_quote_mgmt_core_quote_internal_contact с полета u_quote, u_user, u_rolle.
+- Там има и стандартен workspace бутон Submit for Approval. Той се крие при state approved, completed, closed, canceled и requested_for_review. Ако advanced approvals са включени, етикетът е Preview & Submit for Approval. За теста ползвай нашия бутон Submit for approval, защото той пуска quote_kam_approval_flow. Нотификацията остава върху смяната към approved, независимо кой бутон е натиснат.
+- Update set-ът на сторито остава в sn_quote_mgmt_core, не в sn_quote_mgmt.
 
 1. Update set
    Превключи приложението на Quote Management Data Model (sn_quote_mgmt_core).
