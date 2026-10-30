@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<unload unload_date="2026-10-30 12:11:57">
+<sys_script_execution_history action="INSERT_OR_UPDATE">
+<executed_by display_value="Ivo Stoyanov (Zweitbenutzer)">2114117881e28f90b0e42d062435c346</executed_by>
+<finished>2026-10-30 12:11:05</finished>
+<result>*** Script: --- by event ---
+*** Script: count=1
+*** Script: Angebot KAM-Freigabe - Presales | active=true | table=sn_quote_mgmt_core_quote | parm1=true | condition= | scope=Quote Management Data Model
+*** Script: --- by name ---
+*** Script: Notification 1 to Presales | event=activate.life.cycle.migration | active=true | table=sn_quote_mgmt_core_quote | cond=stateCHANGESTOpending_customer_acceptance^assigned_toISNOTEMPTY^EQ
+*** Script: Notification 2 to Presales | event=activate.life.cycle.migration | active=true | table=sn_quote_mgmt_core_quote | cond=stateCHANGESTOcompleted^assigned_toISNOTEMPTY^EQ
+*** Script: Angebot KAM-Freigabe - Presales | event=sn_quote_mgmt_core.quote.kam_approved | active=true | table=sn_quote_mgmt_core_quote | cond=
+*** Script: Nicht sichtbare Einträge nur für Anon-Admin sichtbar!
+*** Script: USER Audit Konfigurator | email=testKonfig@f-i-ts.de | notification=2 | active=true</result>
+<rollback_context display_value=""/>
+<script><![CDATA[gs.print('--- by event ---');
+var gr = new GlideRecord('sysevent_email_action');
+gr.addQuery('event_name', 'sn_quote_mgmt_core.quote.kam_approved');
+gr.query();
+gs.print('count=' + gr.getRowCount());
+while (gr.next()) {
+    gs.print(gr.name + ' | active=' + gr.active + ' | table=' + gr.collection + ' | parm1=' + gr.event_parm_1 + ' | condition=' + gr.condition + ' | scope=' + gr.sys_scope.getDisplayValue());
+}
+
+gs.print('--- by name ---');
+var n = new GlideRecord('sysevent_email_action');
+n.addQuery('name', 'CONTAINS', 'Presales');
+n.query();
+while (n.next()) {
+    gs.print(n.name + ' | event=' + n.event_name + ' | active=' + n.active + ' | table=' + n.collection + ' | cond=' + n.condition);
+}
+
+var u = new GlideRecord('sys_user');
+if (u.get('f7aaa82dc19db6101f18ba79f0f6483e'))
+    gs.print('USER ' + u.getDisplayValue() + ' | email=' + u.email + ' | notification=' + u.notification + ' | active=' + u.active);
+else
+    gs.print('PARM1 IS NOT A USER');]]></script>
+<started>2026-10-30 12:11:05</started>
+<sys_created_by>IZEAE65</sys_created_by>
+<sys_created_on>2026-10-30 12:11:05</sys_created_on>
+<sys_id>35367130f0d41f10b0e43cf86fc08413</sys_id>
+<sys_mod_count>1</sys_mod_count>
+<sys_updated_by>IZEAE65</sys_updated_by>
+<sys_updated_on>2026-10-30 12:11:05</sys_updated_on>
+<transaction display_value="/sys.scripts.do?runscript&amp;method=/*_________________________________________________________________&#13;&#10;   * Description:&#13;&#10;   * Parameters:&#13;&#10;   * Returns:&#13;&#10;   ________________________________________________________________*/&#13;&#10;   $0: function() {&#13;&#10;   &#13;&#10;   },&#13;&#10;&amp;ialogbr=//pass three mandatory parameters: scope, source and feature&#13;&#10;var logger = new sn_ia_config.IALogger(gs.getCurrentScopeName(),'$0');&amp;for=for (var i=0; i&lt; myArray.length; i++) {&#13;&#10; //myArray[i];&#13;&#10; &#13;&#10;}&#13;&#10;&#13;&#10; &amp;vargror=var gr = new GlideRecord('$0');&#13;&#10; &#13;&#10;var qc = gr.addQuery('field', 'value1');&#13;&#10; &#13;&#10;qc.addOrCondition('field', 'value2');&#13;&#10;gr.query();&#13;&#10; &#13;&#10;while (gr.next()) {&#13;&#10;&#13;&#10; &#13;&#10;}&#13;&#10;&#13;&#10; &amp;quota_managed_transaction=on&amp;go_to_input_&amp;record_for_rollback=on&amp;script=gs.print('--- by event ---');&#13;&#10;var gr = new GlideRecord('sysevent_email_action');&#13;&#10;gr.addQuery('event_name', 'sn_quote_mgmt_core.quote.kam_approved');&#13;&#10;gr.query();&#13;&#10;gs.print('count=' + gr.getRowCount());&#13;&#10;while (gr.next()) {&#13;&#10;    gs.print(gr.name + ' | active=' + gr.active + ' | table=' + gr.collection + ' | parm1=' + gr.event_parm_1 + ' | condition=' + gr.condition + ' | scope=' + gr.sys_scope.getDisplayValue());&#13;&#10;}&#13;&#10;&#13;&#10;gs.print('--- by name ---');&#13;&#10;var n = new GlideRecord('sysevent_email_action');&#13;&#10;n.addQuery('name', 'CONTAINS', 'Presales');&#13;&#10;n.query();&#13;&#10;while (n.next()) {&#13;&#10;    gs.print(n.name + ' | event=' + n.event_name + ' | active=' + n.active + ' | table=' + n.collection + ' | cond=' + n.condition);&#13;&#10;}&#13;&#10;&#13;&#10;var u = new GlideRecord('sys_user');&#13;&#10;if (u.get('f7aaa82dc19db6101f18ba79f0f6483e'))&#13;&#10;    gs.print('USER ' + u.getDisplayValue() + ' | email=' + u.email + ' | notification=' + u.notification + ' | active=' + u.active);&#13;&#10;else&#13;&#10;    gs.print('PARM1 IS NOT A USER');&amp;sys_original.script&amp;sysparm_ck=545e4...f359d (length=72)&amp;ialogsi=//pass three mandatory parameters: scope, source and feature&#13;&#10;this.logger = new sn_ia_config.IALogger(gs.getCurrentScopeName(),'$0');&amp;doc=/**&#13;&#10; &#13;&#10;* Description: $0&#13;&#10; &#13;&#10;* Parameters: &#13;&#10; &#13;&#10;* Returns:&#13;&#10;*/&#13;&#10; &amp;sys_scope=8dcdd488d1c81714b0e435b680088cae&amp;vargr=var gr = new GlideRecord(&quot;$0&quot;);&#13;&#10;gr.addQuery(&quot;name&quot;, &quot;value&quot;);&#13;&#10;gr.query();&#13;&#10;if (gr.next()) {&#13;&#10;   &#13;&#10;}&#13;&#10;&amp;info=gs.addInfoMessage(gs.getMessage(&quot;$0&quot;));">b136f97cf0941f10b0e43cf86fc08451</transaction>
+</sys_script_execution_history>
+</unload>
