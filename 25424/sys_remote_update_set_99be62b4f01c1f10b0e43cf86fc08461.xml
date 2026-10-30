@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?><unload unload_date="2026-10-30 16:17:55">
+<sys_remote_update_set action="INSERT_OR_UPDATE">
+<application display_value="Quote Management Data Model">d5457076b70131101aaebe508e11a907</application>
+<application_name>Quote Management Data Model</application_name>
+<application_scope>sn_quote_mgmt_core</application_scope>
+<application_version>11.2.3</application_version>
+<collisions/>
+<commit_date/>
+<deleted/>
+<description/>
+<inserted/>
+<name>STRY0025424-DIGITALL-SOM</name>
+<origin_sys_id/>
+<parent display_value=""/>
+<release_date/>
+<remote_base_update_set display_value=""/>
+<remote_parent_id/>
+<remote_sys_id>d5133cbcf0dcdb10b0e43cf86fc08426</remote_sys_id>
+<state>loaded</state>
+<summary/>
+<sys_class_name>sys_remote_update_set</sys_class_name>
+<sys_created_by>IZEAE65</sys_created_by>
+<sys_created_on>2026-10-30 16:17:54</sys_created_on>
+<sys_id>99be62b4f01c1f10b0e43cf86fc08461</sys_id>
+<sys_mod_count>0</sys_mod_count>
+<sys_updated_by>IZEAE65</sys_updated_by>
+<sys_updated_on>2026-10-30 16:17:54</sys_updated_on>
+<update_set display_value=""/>
+<update_source display_value=""/>
+<updated/>
+</sys_remote_update_set>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>INSERT_OR_UPDATE</action>
+<application display_value="Quote Management Data Model">d5457076b70131101aaebe508e11a907</application>
+<category>customer</category>
+<comments/>
+<name>sys_script_449a26b0f01c1f10b0e43cf86fc08445</name>
+<payload>&lt;?xml version="1.0" encoding="UTF-8"?&gt;&lt;record_update sys_domain="global" table="sys_script"&gt;&lt;sys_script action="INSERT_OR_UPDATE"&gt;&lt;abort_action&gt;false&lt;/abort_action&gt;&lt;access&gt;package_private&lt;/access&gt;&lt;action_delete&gt;false&lt;/action_delete&gt;&lt;action_insert&gt;false&lt;/action_insert&gt;&lt;action_query&gt;false&lt;/action_query&gt;&lt;action_update&gt;true&lt;/action_update&gt;&lt;active&gt;true&lt;/active&gt;&lt;add_message&gt;false&lt;/add_message&gt;&lt;advanced&gt;true&lt;/advanced&gt;&lt;change_fields&gt;false&lt;/change_fields&gt;&lt;client_callable&gt;false&lt;/client_callable&gt;&lt;collection&gt;sn_quote_mgmt_core_quote&lt;/collection&gt;&lt;condition/&gt;&lt;description&gt;Notify Presales on KAM approval&lt;/description&gt;&lt;execute_function&gt;false&lt;/execute_function&gt;&lt;filter_condition table="sn_quote_mgmt_core_quote"&gt;stateCHANGESTOapproved^EQ&lt;item display_value="Approved" endquery="false" field="state" goto="false" newquery="false" operator="CHANGESTO" or="false" value="approved"/&gt;&lt;item endquery="true" field="" goto="false" newquery="false" operator="=" or="false" value=""/&gt;&lt;/filter_condition&gt;&lt;is_rest&gt;false&lt;/is_rest&gt;&lt;message/&gt;&lt;name&gt;Notify Presales on KAM approval&lt;/name&gt;&lt;order&gt;100&lt;/order&gt;&lt;priority&gt;100&lt;/priority&gt;&lt;rest_method/&gt;&lt;rest_method_text/&gt;&lt;rest_service/&gt;&lt;rest_service_text/&gt;&lt;rest_variables/&gt;&lt;role_conditions/&gt;&lt;script&gt;&lt;![CDATA[(function executeRule(current, previous) {
+       var contactGr = new GlideRecord('sn_quote_mgmt_core_quote_internal_contact');
+       contactGr.addQuery('u_quote', current.getUniqueValue());
+       contactGr.addQuery('u_rolle', 'Presales Consultant');
+       contactGr.setLimit(1);
+       contactGr.query();
+       if (!contactGr.next())
+           return;
+       var userId = contactGr.getValue('u_user');
+       if (!userId)
+           return;
+       gs.eventQueue('sn_quote_mgmt_core.quote.kam_approved', current, userId);
+   })(current, previous);]]&gt;&lt;/script&gt;&lt;sys_class_name&gt;sys_script&lt;/sys_class_name&gt;&lt;sys_created_by&gt;IZEAE65&lt;/sys_created_by&gt;&lt;sys_created_on&gt;2026-10-30 16:02:14&lt;/sys_created_on&gt;&lt;sys_domain&gt;global&lt;/sys_domain&gt;&lt;sys_domain_path/&gt;&lt;sys_id&gt;449a26b0f01c1f10b0e43cf86fc08445&lt;/sys_id&gt;&lt;sys_mod_count&gt;0&lt;/sys_mod_count&gt;&lt;sys_name&gt;Notify Presales on KAM approval&lt;/sys_name&gt;&lt;sys_overrides/&gt;&lt;sys_package display_value="Quote Management Data Model" source="sn_quote_mgmt_core"&gt;d5457076b70131101aaebe508e11a907&lt;/sys_package&gt;&lt;sys_policy/&gt;&lt;sys_scope display_value="Quote Management Data Model"&gt;d5457076b70131101aaebe508e11a907&lt;/sys_scope&gt;&lt;sys_update_name&gt;sys_script_449a26b0f01c1f10b0e43cf86fc08445&lt;/sys_update_name&gt;&lt;sys_updated_by&gt;IZEAE65&lt;/sys_updated_by&gt;&lt;sys_updated_on&gt;2026-10-30 16:02:14&lt;/sys_updated_on&gt;&lt;template/&gt;&lt;when&gt;after&lt;/when&gt;&lt;/sys_script&gt;&lt;sys_translated_text action="delete_multiple" query="documentkey=449a26b0f01c1f10b0e43cf86fc08445"/&gt;&lt;/record_update&gt;</payload>
+<payload_hash>-1688400320</payload_hash>
+<remote_update_set display_value="STRY0025424-DIGITALL-SOM">99be62b4f01c1f10b0e43cf86fc08461</remote_update_set>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>IZEAE65</sys_created_by>
+<sys_created_on>2026-10-30 16:17:54</sys_created_on>
+<sys_id>59be62b4f01c1f10b0e43cf86fc08463</sys_id>
+<sys_mod_count>0</sys_mod_count>
+<sys_recorded_at>1a18d8c24550000001</sys_recorded_at>
+<sys_updated_by>IZEAE65</sys_updated_by>
+<sys_updated_on>2026-10-30 16:17:54</sys_updated_on>
+<table>sn_quote_mgmt_core_quote</table>
+<target_name>Notify Presales on KAM approval</target_name>
+<type>Business Rule</type>
+<update_domain>global</update_domain>
+<update_guid>3f1b6eb0621c1f10d25ddb8d2ec20d47</update_guid>
+<update_guid_history>3f1b6eb0621c1f10d25ddb8d2ec20d47:-1688400320</update_guid_history>
+<update_set display_value=""/>
+<view/>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>INSERT_OR_UPDATE</action>
+<application display_value="Quote Management Data Model">d5457076b70131101aaebe508e11a907</application>
+<category>customer</category>
+<comments/>
+<name>sysevent_email_action_d0c196f0f0981f10b0e43cf86fc0845c</name>
+<payload>&lt;?xml version="1.0" encoding="UTF-8"?&gt;&lt;record_update sys_domain="global" table="sysevent_email_action"&gt;&lt;sysevent_email_action action="INSERT_OR_UPDATE"&gt;&lt;action_insert&gt;false&lt;/action_insert&gt;&lt;action_update&gt;true&lt;/action_update&gt;&lt;active&gt;true&lt;/active&gt;&lt;advanced_condition/&gt;&lt;affected_field_on_event/&gt;&lt;category display_value="Uncategorized" name="Uncategorized"&gt;c97d83137f4432005f58108c3ffa917a&lt;/category&gt;&lt;collection&gt;sn_quote_mgmt_core_quote&lt;/collection&gt;&lt;condition/&gt;&lt;content_type&gt;text/html&lt;/content_type&gt;&lt;default_digest&gt;false&lt;/default_digest&gt;&lt;default_interval/&gt;&lt;description/&gt;&lt;digest_from/&gt;&lt;digest_html/&gt;&lt;digest_reply_to/&gt;&lt;digest_separator_html&gt;&lt;![CDATA[&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+&lt;hr&gt;
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;]]&gt;&lt;/digest_separator_html&gt;&lt;digest_separator_text&gt;&lt;![CDATA[\n--------------------------------------------------------------------------------\n]]&gt;&lt;/digest_separator_text&gt;&lt;digest_subject/&gt;&lt;digest_template/&gt;&lt;digest_text/&gt;&lt;digest_type&gt;single&lt;/digest_type&gt;&lt;digestable&gt;false&lt;/digestable&gt;&lt;enable_dynamic_translation&gt;false&lt;/enable_dynamic_translation&gt;&lt;event_name&gt;sn_quote_mgmt_core.quote.kam_approved&lt;/event_name&gt;&lt;event_parm_1&gt;true&lt;/event_parm_1&gt;&lt;event_parm_2&gt;false&lt;/event_parm_2&gt;&lt;exclude_delegates&gt;false&lt;/exclude_delegates&gt;&lt;force_delivery&gt;false&lt;/force_delivery&gt;&lt;from/&gt;&lt;generation_type&gt;event&lt;/generation_type&gt;&lt;importance/&gt;&lt;include_attachments&gt;false&lt;/include_attachments&gt;&lt;item&gt;event.parm1&lt;/item&gt;&lt;item_table/&gt;&lt;mandatory&gt;false&lt;/mandatory&gt;&lt;message/&gt;&lt;message_html&gt;&lt;![CDATA[&lt;p&gt;Folgendes Angebot wurde soeben vom KAM freigegeben:&lt;br&gt;Account: ${account.name}&lt;br&gt;Titel: ${short_description}&lt;br&gt;Nummer: ${number}&lt;br&gt;Link: ${URI}&lt;/p&gt;]]&gt;&lt;/message_html&gt;&lt;message_list/&gt;&lt;message_text/&gt;&lt;name&gt;Angebot KAM-Freigabe - Presales&lt;/name&gt;&lt;omit_watermark&gt;false&lt;/omit_watermark&gt;&lt;order&gt;100&lt;/order&gt;&lt;push_message_only&gt;false&lt;/push_message_only&gt;&lt;recipient_fields/&gt;&lt;recipient_groups/&gt;&lt;recipient_users/&gt;&lt;reply_to/&gt;&lt;send_self&gt;false&lt;/send_self&gt;&lt;sms_alternate/&gt;&lt;style/&gt;&lt;subject&gt;Angebot freigegeben: ${number}&lt;/subject&gt;&lt;subscribable&gt;false&lt;/subscribable&gt;&lt;sys_class_name&gt;sysevent_email_action&lt;/sys_class_name&gt;&lt;sys_created_by&gt;IZEAE65&lt;/sys_created_by&gt;&lt;sys_created_on&gt;2026-10-30 14:13:17&lt;/sys_created_on&gt;&lt;sys_domain&gt;global&lt;/sys_domain&gt;&lt;sys_domain_path&gt;/&lt;/sys_domain_path&gt;&lt;sys_id&gt;d0c196f0f0981f10b0e43cf86fc0845c&lt;/sys_id&gt;&lt;sys_mod_count&gt;18&lt;/sys_mod_count&gt;&lt;sys_name&gt;Angebot KAM-Freigabe - Presales&lt;/sys_name&gt;&lt;sys_overrides/&gt;&lt;sys_package display_value="Quote Management Data Model" source="sn_quote_mgmt_core"&gt;d5457076b70131101aaebe508e11a907&lt;/sys_package&gt;&lt;sys_policy/&gt;&lt;sys_scope display_value="Quote Management Data Model"&gt;d5457076b70131101aaebe508e11a907&lt;/sys_scope&gt;&lt;sys_update_name&gt;sysevent_email_action_d0c196f0f0981f10b0e43cf86fc0845c&lt;/sys_update_name&gt;&lt;sys_updated_by&gt;IZEAE65&lt;/sys_updated_by&gt;&lt;sys_updated_on&gt;2026-10-30 16:07:13&lt;/sys_updated_on&gt;&lt;sys_version&gt;2&lt;/sys_version&gt;&lt;template display_value="FITS Email Template"&gt;b068149debaf37841f18be51f631df34&lt;/template&gt;&lt;type&gt;email&lt;/type&gt;&lt;weight&gt;0&lt;/weight&gt;&lt;/sysevent_email_action&gt;&lt;sys_es_latest_script action="INSERT_OR_UPDATE"&gt;&lt;id&gt;d0c196f0f0981f10b0e43cf86fc0845c&lt;/id&gt;&lt;sys_created_by&gt;IZEAE65&lt;/sys_created_by&gt;&lt;sys_created_on&gt;2026-10-30 14:18:52&lt;/sys_created_on&gt;&lt;sys_id&gt;257352b4f0981f10b0e43cf86fc08468&lt;/sys_id&gt;&lt;sys_mod_count&gt;0&lt;/sys_mod_count&gt;&lt;sys_updated_by&gt;IZEAE65&lt;/sys_updated_by&gt;&lt;sys_updated_on&gt;2026-10-30 14:18:52&lt;/sys_updated_on&gt;&lt;table&gt;sysevent_email_action&lt;/table&gt;&lt;use_es_latest&gt;true&lt;/use_es_latest&gt;&lt;/sys_es_latest_script&gt;&lt;/record_update&gt;</payload>
+<payload_hash>1972444843</payload_hash>
+<remote_update_set display_value="STRY0025424-DIGITALL-SOM">99be62b4f01c1f10b0e43cf86fc08461</remote_update_set>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>IZEAE65</sys_created_by>
+<sys_created_on>2026-10-30 16:17:54</sys_created_on>
+<sys_id>91be62b4f01c1f10b0e43cf86fc08462</sys_id>
+<sys_mod_count>0</sys_mod_count>
+<sys_recorded_at>1a18d90b3910000001</sys_recorded_at>
+<sys_updated_by>IZEAE65</sys_updated_by>
+<sys_updated_on>2026-10-30 16:17:54</sys_updated_on>
+<table>sn_quote_mgmt_core_quote</table>
+<target_name>Angebot KAM-Freigabe - Presales</target_name>
+<type>Notification</type>
+<update_domain>global</update_domain>
+<update_guid>ec4c2ef04d1c1f104d815720c89e5473</update_guid>
+<update_guid_history>ec4c2ef04d1c1f104d815720c89e5473:1972444843,d3cb26f0dd1c1f105afb38977baed571:2138650673,ea60ea7811d81f10b4295fc8f7e28f35:-231433916,633f9a38dcd81f100320fc7296b7bd6d:1021391838,c17e5af415d81f10db8221c796c4e9e7:2015366424,1afd5eb4aed81f10e10fb5ac22cbf9f1:-1308894114,f7cd5ab42dd81f10fe888e3b3263b47d:-1811819541,a7ccd674ecd81f10b36a322631998db7:-1852233275,f2cbd63421d81f10a61fd0948023aa5b:-231433916,448b1ef04dd81f10eb3fe246f55eeb99:1021391838,c59a52708ed81f1024497fbc50da85a1:-1811819541,3b2a9670d9d81f1046f10a88a303d2b6:-1779914341,0cc91a30c6d81f10da2bfa9139bd215b:-1852233275,8f0956fca1981f10d230109dc364d4db:330815697,9356dab8d0981f1048b1b618b3d7d4c2:-1276392520,f0c552b846981f10243f1029b2a38c69:-2072080076,81651a781c981f10fed90c6df5987ec8:1420704241,f57316b4e5981f102149a063c15a52ab:-19122246,4c32d634fb981f10b4ad959c1e2f546f:-1993713056</update_guid_history>
+<update_set display_value=""/>
+<view/>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>INSERT_OR_UPDATE</action>
+<application display_value="Quote Management Data Model">d5457076b70131101aaebe508e11a907</application>
+<category>customer</category>
+<comments/>
+<name>sysevent_register_a489e670f01c1f10b0e43cf86fc08400</name>
+<payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update table="sysevent_register"><sysevent_register action="INSERT_OR_UPDATE"><caller_access/><derived_priority>100</derived_priority><description/><event_name>sn_quote_mgmt_core.quote.kam_approved</event_name><fired_by/><priority>100</priority><queue/><suffix>quote.kam_approved</suffix><sys_class_name>sysevent_register</sys_class_name><sys_created_by>IZEAE65</sys_created_by><sys_created_on>2026-10-30 15:58:05</sys_created_on><sys_id>a489e670f01c1f10b0e43cf86fc08400</sys_id><sys_mod_count>0</sys_mod_count><sys_name>sn_quote_mgmt_core.quote.kam_approved</sys_name><sys_package display_value="Quote Management Data Model" source="sn_quote_mgmt_core">d5457076b70131101aaebe508e11a907</sys_package><sys_policy/><sys_scope display_value="Quote Management Data Model">d5457076b70131101aaebe508e11a907</sys_scope><sys_update_name>sysevent_register_a489e670f01c1f10b0e43cf86fc08400</sys_update_name><sys_updated_by>IZEAE65</sys_updated_by><sys_updated_on>2026-10-30 15:58:05</sys_updated_on><table>sn_quote_mgmt_core_quote</table></sysevent_register></record_update>]]></payload>
+<payload_hash>-1808495906</payload_hash>
+<remote_update_set display_value="STRY0025424-DIGITALL-SOM">99be62b4f01c1f10b0e43cf86fc08461</remote_update_set>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>IZEAE65</sys_created_by>
+<sys_created_on>2026-10-30 16:17:54</sys_created_on>
+<sys_id>91be62b4f01c1f10b0e43cf86fc08463</sys_id>
+<sys_mod_count>0</sys_mod_count>
+<sys_recorded_at>1a18d8857df0000001</sys_recorded_at>
+<sys_updated_by>IZEAE65</sys_updated_by>
+<sys_updated_on>2026-10-30 16:17:54</sys_updated_on>
+<table>sn_quote_mgmt_core_quote</table>
+<target_name>sn_quote_mgmt_core.quote.kam_approved</target_name>
+<type>Event Registration</type>
+<update_domain>global</update_domain>
+<update_guid>8f2aae70e61c1f1021647c4eeaf94da5</update_guid>
+<update_guid_history>8f2aae70e61c1f1021647c4eeaf94da5:-1808495906</update_guid_history>
+<update_set display_value=""/>
+<view/>
+</sys_update_xml>
+</unload>
