@@ -34,67 +34,73 @@ STRY0025424 — Info an Presales nach KAM-Freigabe
    Ако flow-ът е inactive, не го активирай в това стори. Отбележи го: без активен flow няма Freigabe и няма как да се тества.
    Отвори една вече одобрена оферта и провери, че short_description е Titel der Anfrage. Ако заглавието е в друго поле, ползвай него в скрипта.
 
-3. Без събитие и без нотификация
-   Имейлът се създава от business rule с GlideEmailOutbound.
-   Това пише направо в sys_email и не минава през event, notification devices и user notification preference.
-   Деактивирай нотификацията Angebot KAM-Freigabe - Presales.
-   Event-ът quote.kam_approved повече не се вика. Може да остане в registry.
+3. Спри старото
+   Деактивирай business rule Notify Presales on KAM approval. Той вече не трябва да вика event.
+   Нотификацията Angebot KAM-Freigabe - Presales се преправя, не се прави втора.
 
-4. Business rule
-   Отвори Notify Presales on KAM approval и смени скрипта. Ако правилото го няма, създай го.
-   Table: sn_quote_mgmt_core_quote
-   Advanced: true
-   When: after
-   Update: true
-   Insert: false
-   Filter condition: State changes to approved
+4. Mail script
+   System Notification > Email > Notification Email Scripts > New.
+   Name: fits_get_presales_consultant
 
-   (function executeRule(current, previous) {
+   (function runMailScript(current, template, email, email_action, event) {
        var contactGr = new GlideRecord('sn_quote_mgmt_core_quote_internal_contact');
        contactGr.addQuery('u_quote', current.getUniqueValue());
        contactGr.addQuery('u_rolle', 'Presales Consultant');
        contactGr.query();
+       var seen = {};
        while (contactGr.next()) {
-           var email = contactGr.u_user.email + '';
-           var name = contactGr.u_user.getDisplayValue();
-           if (!email)
+           var addr = (contactGr.u_user.email + '').trim();
+           if (!addr || seen[addr.toLowerCase()])
                continue;
-
-           var link = gs.getProperty('glide.servlet.uri') + 'sn_quote_mgmt_core_quote.do?sys_id=' + current.getUniqueValue();
-           var body = 'Folgendes Angebot wurde soeben vom KAM freigegeben:\n'
-               + 'Account: ' + current.getDisplayValue('account') + '\n'
-               + 'Titel: ' + current.getDisplayValue('short_description') + '\n'
-               + 'Nummer: ' + current.getValue('number') + '\n'
-               + 'Link: ' + link;
-
-           var mail = new GlideEmailOutbound();
-           mail.setSubject('Angebot freigegeben: ' + current.getValue('number'));
-           mail.addAddress('to', email, name);
-           mail.setBody(body);
-           mail.save();
+           seen[addr.toLowerCase()] = true;
+           email.addAddress('to', addr, contactGr.u_user.getDisplayValue());
        }
-   })(current, previous);
+   })(current, template, email, email_action, event);
 
-   Без Presales Consultant или без email на user-а писмо не се създава.
+5. Нотификация
+   Отвори Angebot KAM-Freigabe - Presales.
+   Table: sn_quote_mgmt_core_quote
+   Active: true
+   Send when: Record inserted or updated
+   Updated: true
+   Inserted: false
+   Event name: празно. Ако остане event, нотификацията не тръгва от смяната на state.
+   Conditions: празно
+   Advanced condition:
 
-5. Какво да не хваща
-   Филтърът е „changes to approved“, не „is approved“.
+   current.state.changesTo('approved');
+
+   Send to event creator: false
+   Users / Groups / Users-groups in fields: празно
+   Subject: Angebot freigegeben: ${number}
+   Content type: text/html
+   В началото на тялото, преди текста:
+
+   ${mail_script:fits_get_presales_consultant}
+
+   Folgendes Angebot wurde soeben vom KAM freigegeben:
+   Account: ${account.name}
+   Titel: ${short_description}
+   Nummer: ${number}
+   Link: ${URI}
+
+6. Какво да не хваща
+   Advanced condition е changesTo('approved'), не „state is approved“.
    Няма имейл при:
    - in_approval, rejected, canceled, draft
-   - повторно save на вече approved оферта
-   - оферта без Presales Consultant
+   - повторен save на вече approved оферта
+   - оферта без Presales Consultant или без email на user-а
 
-6. Тест
-   Оферта в In Progress, с assigned_to, за да съществува Presales Consultant с попълнен email.
+7. Тест
+   Оферта в In Progress, с Presales Consultant и попълнен email.
    Смени state на approved.
-   Веднага гледай sys_email.list, не Events.
-   Трябва един запис до пощата на Presales, със subject Angebot freigegeben и текста от сторито.
-   Ако SMTP на dev е спрян, записът стои в Outbox и не излиза навън. Това стига за теста.
+   В sys_email.list има един запис до тази поща, subject Angebot freigegeben, с текста от сторито.
+   Ако SMTP на dev е спрян, записът стои в Outbox.
    Отрицателни:
-   - reject или друг state → няма нов запис
-   - оферта без Presales Consultant → няма запис
-   - втори save на същата approved оферта → няма втори запис
+   - друг state → няма запис
+   - без Presales Consultant → няма запис
+   - втори save без нова смяна към approved → няма втори запис
 
-7. Стори
-   В update set-а остава business rule-ът. Нотификацията е inactive.
-   Work note в STRY0025424: името на правилото и резултатът от теста.
+8. Стори
+   В update set-а: нотификацията и mail script-ът. Business rule-ът е inactive.
+   Work note в STRY0025424: имената на двата записа и резултатът от теста.
